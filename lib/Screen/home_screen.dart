@@ -1,6 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_animations/flutter_map_animations.dart';
+import 'package:latlong2/latlong.dart' as latLng;
+import 'package:mapdesign_flutter/app_colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -8,258 +12,213 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  latLng.LatLng? currentLocation;
+  bool highlightMarker = false;
+  bool toggleAimPoint = false;
+  late final mapController = AnimatedMapController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+  );
+  List<CircleMarker> circles = [];
 
-class _HomeScreenState extends State<HomeScreen> {
-  bool choolCheckDone = false;
-  GoogleMapController? mapController;
-
-  static final LatLng kmLatLng = LatLng(
-    35.8588,
-    128.4874,
-  );
-  static final CameraPosition initialPosition = CameraPosition(
-    target: kmLatLng,
-    zoom: 16,
-  );
-  static final double okDistance = 10;
-  static final Circle withinDistanceCircle = Circle(
-    circleId: CircleId('withinDistanceCircle'),
-    center: kmLatLng,
-    fillColor: Colors.blue.withOpacity(0.5),
-    radius: okDistance,
-    strokeColor: Color(0xff235FD9),
-    strokeWidth: 1,
-  );
-  static final Circle notwithinDistanceCircle = Circle(
-    circleId: CircleId('notwithinDistanceCircle'),
-    center: kmLatLng,
-    fillColor: Colors.red.withOpacity(0.5),
-    radius: okDistance,
-    strokeColor: Color(0xffF20505),
-    strokeWidth: 1,
-  );
-
-  static final Marker marker = Marker(
-    markerId: MarkerId('marker'),
-    position: kmLatLng,
-  );
-
+  double zoom = 15.0;
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: renderAppBar(),
-      body: FutureBuilder<String>(
-        future: checkPermission(),
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (snapshot.data == '위치 권한을 허가되었습니다.') {
-            return StreamBuilder<Position>(
-              stream: Geolocator.getPositionStream(),
-              builder: (context, snapshot) {
-                bool isWithinRange = false;
-
-                if (snapshot.hasData) {
-                  final start = snapshot.data!;
-                  final end = kmLatLng;
-
-                  final distance = Geolocator.distanceBetween(
-                    start.latitude,
-                    start.longitude,
-                    end.latitude,
-                    end.longitude,
-                  );
-
-                  if (distance < okDistance) {
-                    isWithinRange = true;
-                  }
-                }
-
-                return Column(
-                  children: [
-                    _CustomGoogleMap(
-                      initialPosition: initialPosition,
-                      circle: isWithinRange
-                          ? withinDistanceCircle
-                          : notwithinDistanceCircle,
-                      marker: marker,
-                      onMapCreated: onMapCreated,
-                    ),
-                  ],
-                );
-              },
-            );
-          }
-
-          return Center(
-            child: Text(snapshot.data),
-          );
-        },
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: AssetImage('asset/img/poke.jpg'),
-                backgroundColor: Color(0xffDfE4F2),
-              ),
-              accountName: Text('Shin'),
-              accountEmail: Text('leo2120@naver.com'),
-              onDetailsPressed: () {
-                print('확장');
-              },
-              decoration: BoxDecoration(
-                color: Color(0xff044BD9),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(40.0),
-                  bottomRight: Radius.circular(40.0),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.home,
-                color: Color(0xff235FD9),
-              ),
-              title: Text('프로필'),
-              onTap: (){
-                print('프로필 클릭');
-              },
-              trailing: Icon(Icons.arrow_forward),
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.settings,
-                color: Color(0xff235FD9),
-              ),
-              title: Text('설정'),
-              onTap: (){
-                print('설정 클릭');
-              },
-              trailing: Icon(Icons.arrow_forward),
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.question_answer,
-                color: Color(0xff235FD9),
-              ),
-              title: Text('메세지'),
-              onTap: (){
-                print('메세지 클릭');
-              },
-              trailing: Icon(Icons.arrow_forward),
-            ),
-          ],
-        ),
-      ),
-    );
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getLocationData();
   }
-
-  onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+  void setFocusOnCurrentLocation(){
+    mapController.animateTo(dest: currentLocation!);
+    setState(() {
+      highlightMarker = true; // 마커를 강조
+    });
   }
+  Future<void> getLocationData() async{
+    bool serviceEnabled;
+    LocationPermission permission;
 
-  Future<String> checkPermission() async {
-    final isLocationEnabled = await Geolocator.isLocationServiceEnabled();
-
-    if (!isLocationEnabled) {
-      return '위치 서비스를 활성화 해주세요.';
+    // 위치 서비스가 활성화되어 있는지 확인
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return; // 위치 서비스가 비활성화된 경우 추가 작업을 수행하지 않음
     }
 
-    LocationPermission checkedPermission = await Geolocator.checkPermission();
-
-    if (checkedPermission == LocationPermission.denied) {
-      checkedPermission = await Geolocator.requestPermission();
-
-      if (checkedPermission == LocationPermission.denied) {
-        return '위치 권한을 허가해 주세요.';
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse &&
+          permission != LocationPermission.always) {
+        return; // 권한이 거부된 경우 추가 작업을 수행하지 않음
       }
     }
-    if (checkedPermission == LocationPermission.deniedForever) {
-      return '앱의 위치 권한을 세팅에서 허가해 주세요.';
-    }
-    return '위치 권한을 허가되었습니다.';
+    final Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+
+    setState(() {
+      currentLocation = latLng.LatLng(position.latitude, position.longitude);
+      circles.add(
+        CircleMarker(
+            point: currentLocation!,
+            color: Colors.blue.withOpacity(0.1),
+            borderColor: Colors.blue.withOpacity(0.1),
+            borderStrokeWidth: 2,
+            useRadiusInMeter: true,  // 미터 단위 사용
+            radius: 300  //
+        ),
+      );
+    });
+    setFocusOnCurrentLocation();
   }
-
-  AppBar renderAppBar() {
-    return AppBar(
-      title: Text(
-        'AWM',
-        style: TextStyle(
-          color: Color(0xff044BD9),
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      backgroundColor: Color(0xffDFE4F2),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          onPressed: () async {
-            if (mapController == null) {
-              return;
-            }
-
-            final location = await Geolocator.getCurrentPosition();
-
-            mapController!.animateCamera(
-              CameraUpdate.newLatLng(
-                LatLng(
-                  location.latitude,
-                  location.longitude,
-                ),
-              ),
-            );
-          },
-          color: Color(0xff044BD9),
-          icon: Icon(
-            Icons.my_location,
-          ),
-        ),
-        IconButton(
-          onPressed: () {
-            print('검색');
-          },
-          icon: Icon(Icons.search),
-          color: Color(0xff044BD9),
-        ),
-      ],
-    );
+  void setShowAimPoint(){
+    setState(() {
+      toggleAimPoint = !toggleAimPoint;
+    });
   }
-}
-
-class _CustomGoogleMap extends StatelessWidget {
-  final CameraPosition initialPosition;
-  final Circle circle;
-  final Marker marker;
-  final MapCreatedCallback onMapCreated;
-
-  const _CustomGoogleMap({
-    required this.initialPosition,
-    required this.circle,
-    required this.marker,
-    required this.onMapCreated,
-    Key? key,
-  }) : super(key: key);
-
+  void getCoordinates() {
+    var center = mapController.mapController.camera.center; // 지도의 중앙 위치 가져오기
+    print(center.latitude);
+    print(center.longitude);
+  }
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      flex: 7,
-      child: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: initialPosition,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        circles: Set.from([circle]),
-        markers: Set.from([marker]),
-        onMapCreated: onMapCreated,
+    var markers = <Marker>[];
+    if(currentLocation != null){
+      markers.add(
+        // current position
+        Marker(
+            point: currentLocation!,
+            width: 40,
+            height: 40,
+            child: Icon(
+              Icons.location_on,
+              color: AppColors.instance.red,
+              size: 40,
+            ),
+        ),
+      );
+
+      // 이후 API 요청을 하여 주변 근처 위치를 탐색
+      // markers.add()
+    }
+    return Scaffold(
+      appBar: AppBar(
+        title: Container(
+          width: double.infinity,
+          height: 40,
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(5)),
+          child: Center(
+            child: TextField(
+              style: TextStyle(color: Colors.black),
+              decoration: InputDecoration(
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: AppColors.instance.skyBlue,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.clear),
+                    onPressed: () {
+                      /* Clear the search field */
+                    },
+                    color: AppColors.instance.skyBlue,
+                  ),
+                  hintText: 'Search & Explore',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    color: Colors.black,
+                  ),
+              ),
+            ),
+          ),
+        ),
+        backgroundColor: AppColors.instance.whiteGrey,
       ),
+      drawer: Drawer(
+
+      ),
+      body: Stack(
+
+        children: [
+          FlutterMap(
+            mapController: mapController.mapController,
+            options: MapOptions(
+              initialCenter: currentLocation ?? latLng.LatLng(0,0),
+              initialZoom: zoom,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.app',
+              ),
+              CircleLayer(
+                circles: circles,
+              ),
+              MarkerLayer(
+                markers: markers,
+              ),
+            ],
+          ),
+          if(toggleAimPoint)
+            Positioned(
+              top: MediaQuery.of(context).size.height / 2 - 24, // 24 is half the size of the icon
+              left: MediaQuery.of(context).size.width / 2 - 24,
+              child: Icon(
+                Icons.add,
+                size: 48, // You can adjust the size here
+                color: AppColors.instance.red,
+              ),
+            ),
+        ],
+      ),
+      floatingActionButton: Stack(
+       children: [
+         Positioned(
+           bottom: 10.0,
+           right: 10.0,
+           child: FloatingActionButton(
+             onPressed: () => {
+               setFocusOnCurrentLocation()
+             },
+             backgroundColor: AppColors.instance.skyBlue,
+             child: Icon(
+               Icons.my_location,
+               color: AppColors.instance.white,
+             ),
+           ),
+         ),
+         Positioned(
+           bottom: 80.0,
+           right: 10.0,
+           child: FloatingActionButton(
+             onPressed: () => {
+               setShowAimPoint()
+             },
+             backgroundColor: AppColors.instance.skyBlue,
+             child: Icon(
+               toggleAimPoint ? Icons.close : Icons.add,
+               color: AppColors.instance.white,
+             ),
+           ),
+         ),
+         Positioned(
+           bottom: 150.0,
+           right: 10.0,
+           child: FloatingActionButton(
+             onPressed: () => {
+               getCoordinates()
+             },
+             backgroundColor: AppColors.instance.skyBlue,
+             child: Icon(
+               Icons.add_location,
+               color: AppColors.instance.white,
+             ),
+           ),
+         )
+       ],
+      )
     );
   }
 }
+
