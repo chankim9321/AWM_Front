@@ -3,8 +3,8 @@ import 'package:mapdesign_flutter/components/introduction_page_text.dart';
 import 'package:mapdesign_flutter/components/my_button.dart';
 
 class IntroductionThirdPage extends StatelessWidget {
-  const IntroductionThirdPage({super.key});
-
+  const IntroductionThirdPage({super.key, required this.setLastPage});
+  final void Function() setLastPage;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +28,9 @@ class IntroductionThirdPage extends StatelessWidget {
               Expanded(child: SizedBox()), // 추가
               MyButton(
                 // 버튼 누를시 바로 MainPage로 라우팅
-                  onTap: () => {},
+                  onTap: () {
+                    setLastPage!();
+                    },
                   text: "Skip and Start!"
               ),
               SizedBox(height: 100,),

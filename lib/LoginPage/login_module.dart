@@ -16,15 +16,30 @@ class LoginModule extends StatefulWidget {
 class _LoginModuleState extends State<LoginModule> {
   final CarouselController _carouselController = CarouselController();
   int _current = 0;
-
-  List<Widget> widgetList = [
-    // scaffold pages
-    IntroductionFirstPage(),
-    IntroductionSecondPage(),
-    IntroductionThirdPage(),
-    LoginPage(),
-  ];
-
+  late List<Widget> widgetList;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widgetList = [
+      // scaffold pages
+      IntroductionFirstPage(setLastPage: _setLastPage),
+      IntroductionSecondPage(setLastPage: _setLastPage,),
+      IntroductionThirdPage(setLastPage: _setLastPage),
+      LoginPage(),
+    ];
+  }
+  void _setLastPage(){
+    setState(() {
+      _current = 3;
+    });
+    _carouselController.jumpToPage(3);
+  }
+  void onPageChange(index){
+    setState(() {
+      _current = index;
+    });
+  }
   Widget sliderWidget() {
     return CarouselSlider(
       carouselController: _carouselController,
@@ -40,9 +55,7 @@ class _LoginModuleState extends State<LoginModule> {
           scrollDirection: Axis.horizontal,
           pageSnapping: true,
           onPageChanged: (index, reason) {
-            setState(() {
-              _current = index;
-            });
+            onPageChange(index);
           }),
     );
   }
@@ -56,11 +69,8 @@ class _LoginModuleState extends State<LoginModule> {
           height: 8.0,
           margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _current == index
-                ? Colors.blueAccent
-                : Colors.grey
-          ),
+              shape: BoxShape.circle,
+              color: _current == index ? Colors.blueAccent : Colors.grey),
         );
       }),
     );
@@ -71,13 +81,13 @@ class _LoginModuleState extends State<LoginModule> {
     return Container(
       decoration: BoxDecoration(
           image: DecorationImage(
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.5),
-              BlendMode.darken,
-            ),
-            fit: BoxFit.cover,
-            image: AssetImage('asset/flutter_asset/find_path.png'),
-          )),
+        colorFilter: ColorFilter.mode(
+          Colors.black.withOpacity(0.5),
+          BlendMode.darken,
+        ),
+        fit: BoxFit.cover,
+        image: AssetImage('asset/flutter_asset/find_path.png'),
+      )),
       child: Column(
         children: [
           Expanded(child: sliderWidget()),

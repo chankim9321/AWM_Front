@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latLng;
 import 'package:mapdesign_flutter/app_colors.dart';
+import 'package:mapdesign_flutter/components/custom_marker.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -89,16 +90,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         // current position
         Marker(
             point: currentLocation!,
-            width: 40,
-            height: 40,
-            child: Icon(
-              Icons.location_on,
-              color: AppColors.instance.red,
-              size: 40,
+            width: 60,
+            height: 60,
+            child: CustomMarkerIcon(
+              imagePath: "asset/img/pepe.webp",
+              size: Size(400.0, 400.0),
             ),
         ),
       );
-
       // 이후 API 요청을 하여 주변 근처 위치를 탐색
       // markers.add()
     }
@@ -139,7 +138,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       ),
       body: Stack(
-
         children: [
           FlutterMap(
             mapController: mapController.mapController,
