@@ -43,6 +43,7 @@ dependencies:
   flutter_svg: ^2.0.8
   carousel_slider: ^4.2.1
   custom_map_markers: ^0.0.1
+  image_picker: ^1.0.4
 
 dev_dependencies:
   flutter_test:
