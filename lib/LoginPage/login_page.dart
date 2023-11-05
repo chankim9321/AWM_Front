@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/LoginPage/register_page.dart';
 import 'package:mapdesign_flutter/Screen/home_screen.dart';
 import 'package:mapdesign_flutter/components/my_button.dart';
 import 'package:mapdesign_flutter/components/my_textfield.dart';
 import 'package:mapdesign_flutter/components/square_tile.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,19 +16,45 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
-
 class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
-
+  final idController = TextEditingController();
+  final storage = FlutterSecureStorage(); // flutter login info storage
   final passwordController = TextEditingController();
 
   void signUserIn() async {
     // show loading circle
-    showDialog(context: context, builder: (context){
+    showDialog(context: context, barrierDismissible: false, builder: (context){
       return const Center(
         child: CircularProgressIndicator(),
       );
     });
+    // login API
+    try{
+      // login through http request
+      final response = await http.post(
+        Uri.parse(''), // api login url
+        body: {
+          'id': idController.text,
+          'password': passwordController.text,
+        },
+      );
+      // if response is OK
+      if(response.statusCode == 200){
+        final responseData = json.decode(response.body);
+
+        final String token = responseData['token'];
+
+        await storage.write(key: 'token', value: token);
+
+      }else{
+        // error handling required
+        CustomDialog.showCustomDialog(context, "로그인 실패!", "ID 또는 Password가 잘못 되었습니다.");
+      }
+    }catch(e){
+      // network error handling
+      CustomDialog.showCustomDialog(context, "네트워크 오류!", "서버와의 응답이 없습니다. 다시 시도해주세요.");
+    }
+    Navigator.pop(context);
   }
   void startMainPage() async{
     showDialog(context: context, builder: (context){
@@ -69,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 //username
                 MyTextField(
-                    controller: emailController,
+                    controller: idController,
                     hintText: 'Username or email',
                     obscureText: false,
                 ),
@@ -155,9 +186,9 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // 다른 계정으로 로그인(파이어베이스 요구됨)
-                    SquareTile(imagePath: 'asset/icons/google.svg', height: 40, onTap: () => {}, notice: "Continue with Google",),
+                    SquareTile(imagePath: 'asset/icons/btn_google.svg', height: 40, onTap: () => {}, notice: "Continue with Google",),
                     SizedBox(height: 20),
-                    SquareTile(imagePath: 'asset/icons/Vector.svg', height: 40, onTap: () => {}, notice: "Continue with Apple",)
+                    SquareTile(imagePath: 'asset/icons/btn_naver.svg', height: 40, onTap: () => {}, notice: "Continue with Naver",)
                   ],
                 ),
                 SizedBox(height: 20),
