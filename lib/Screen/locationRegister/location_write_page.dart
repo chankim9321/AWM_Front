@@ -28,7 +28,7 @@ class _LocationWritePageState extends State<LocationWritePage> {
                 maxLength: 20,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "장소의 이름을 입력하세요!",
+                  labelText: "장소의 이름을 입력하세요.",
                 ),
                 autofocus: true,
               ),
