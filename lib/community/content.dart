@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 class PostDetailScreen extends StatefulWidget {
+  const PostDetailScreen({super.key});
   @override
-  _PostDetailScreenState createState() => _PostDetailScreenState();
+  State<PostDetailScreen> createState() => _PostDetailScreenState();
 }
 enum SampleItem { itemOne, itemTwo, itemThree }
 

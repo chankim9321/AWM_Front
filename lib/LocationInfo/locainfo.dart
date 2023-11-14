@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mapdesign_flutter/app_colors.dart';
+import 'package:mapdesign_flutter/community/content.dart';
 import 'modifypage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -135,22 +137,14 @@ class _DetailScreenState extends State<DetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 16.0),
-                Text(
-                  '활동거리',
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black54, // 텍스트 색 변경
-                  ),
-                ),
-                SizedBox(height: 20.0),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildRoundedIcon(Icons.question_answer, Color(0xffF6F3F3),Colors.blue),
-                    _buildRoundedIcon(Icons.star, Color(0xffF6F3F3),Colors.yellow),
-                    _buildRoundedIcon(Icons.time_to_leave, Color(0xffF6F3F3), Colors.blue),
-                    _buildRoundedIcon(Icons.flag, Color(0xffF6F3F3), Colors.red),
+                    _buildRoundedIcon(Icons.list_alt, AppColors.instance.whiteGrey, AppColors.instance.skyBlue),
+                    _buildRoundedIcon(Icons.sync_alt, AppColors.instance.whiteGrey, AppColors.instance.skyBlue),
+                    _buildRoundedIcon(Icons.chat_bubble, AppColors.instance.whiteGrey, AppColors.instance.skyBlue),
+                    _buildRoundedIcon(Icons.forum, AppColors.instance.whiteGrey, AppColors.instance.skyBlue),
                   ],
                 ),
               ],
@@ -170,13 +164,21 @@ class _DetailScreenState extends State<DetailScreen> {
         shape: BoxShape.rectangle,
         borderRadius: BorderRadius.circular(15.0),
       ),
-      child: Center(
-        child: Icon(
-          icon,
-          size: 32.0,
-          color: iconColor,
+      child: GestureDetector(
+        // onTap: Navigator.push(
+        //     context,
+        //     MaterialPageRoute(
+        //         builder: (context) =>  PostDetailScreen(),
+        //     )
+        // ),
+        child: Center(
+          child: Icon(
+            icon,
+            size: 32.0,
+            color: iconColor,
+          ),
         ),
-      ),
+      )
     );
   }
 }

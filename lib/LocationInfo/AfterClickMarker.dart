@@ -124,14 +124,16 @@ class _LocalScreenState extends State<LocalScreen> {
                           onTap: () {
                             _openDetailScreen();
                           },
-                          child: Align(
-                            alignment: Alignment.bottomRight,
-                            child: Icon(
-                              Icons.arrow_forward_outlined,
-                              size: 32.0,
-                              color: Colors.white,
+                          child: SafeArea(
+                            child: Align(
+                              alignment: Alignment.bottomRight,
+                              child: Icon(
+                                Icons.arrow_forward_outlined,
+                                size: 32.0,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
+                          )
                         ),
                       ],
                     ),

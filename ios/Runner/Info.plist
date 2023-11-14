@@ -2,6 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <!-- google login -->
+        <string>com.googleusercontent.apps.243455349889-8j7t3mdug9q1fg62lsmtj2m5mbg4t54b</string>
+      </array>
+      </dict>
+    </array>
     <key>NSPhotoLibraryUsageDescription </key>
     <string>사진첩 접근이 필요 합니다</string>
     <key>NSCameraUsageDescription </key>

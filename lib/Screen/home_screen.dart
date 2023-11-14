@@ -5,7 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latLng;
 import 'package:mapdesign_flutter/app_colors.dart';
-import 'package:mapdesign_flutter/components/custom_marker.dart';
+import 'package:mapdesign_flutter/components/MapMarker/custom_marker.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -86,6 +86,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     var markers = <Marker>[];
     if(currentLocation != null){
+      if(toggleAimPoint){
+        markers.add(
+          Marker(
+            point: mapController.mapController.camera.center,
+            width: 60,
+            height: 60,
+              child: Icon(
+                Icons.add_location,
+                color: AppColors.instance.skyBlue,
+                size: 60,
+              ),
+          )
+        );
+      }
       markers.add(
         // current position
         Marker(
@@ -93,11 +107,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             width: 60,
             height: 60,
             child: CustomMarkerIcon(
+              isPlace: false,
               imagePath: "asset/img/pepe.webp",
               size: Size(400.0, 400.0),
             ),
         ),
       );
+      // test
+      markers.add(
+        Marker(
+            point: latLng.LatLng(35.85836750155731, 128.48694463271696),
+            width: 60,
+            height: 60,
+            child: CustomMarkerIcon(
+              isPlace: true,
+              imagePath: "asset/img/bombom.jpg",
+              size: Size(400.0, 400.0),
+            )
+        )
+      );
+
       // 이후 API 요청을 하여 주변 근처 위치를 탐색
       // markers.add()
     }
@@ -158,16 +187,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
-          if(toggleAimPoint)
-            Positioned(
-              top: MediaQuery.of(context).size.height / 2 - 24, // 24 is half the size of the icon
-              left: MediaQuery.of(context).size.width / 2 - 24,
-              child: Icon(
-                Icons.add,
-                size: 48, // You can adjust the size here
-                color: AppColors.instance.red,
-              ),
-            ),
         ],
       ),
       floatingActionButton: Stack(
@@ -213,6 +232,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                color: AppColors.instance.white,
              ),
            ),
+         ),
+         Positioned(
+           bottom: 220.0,
+           right: 10.0,
+           child: FloatingActionButton(
+             onPressed: () => {
+               mapController.animatedZoomOut()
+             },
+             backgroundColor: AppColors.instance.skyBlue,
+             child: Icon(
+               Icons.remove,
+               color: AppColors.instance.white,
+             ),
+          ),
+         ),
+         Positioned(
+           bottom: 290.0,
+           right: 10.0,
+           child: FloatingActionButton(
+             onPressed: () => {
+               mapController.animatedZoomIn()
+             },
+             backgroundColor: AppColors.instance.skyBlue,
+             child: Icon(
+               Icons.add,
+               color: AppColors.instance.white,
+             ),
+           )
          )
        ],
       )

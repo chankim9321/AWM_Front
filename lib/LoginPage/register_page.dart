@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mapdesign_flutter/LoginPage/Oauth_login/google_login.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/components/my_button.dart';
 import 'package:mapdesign_flutter/components/my_textfield.dart';
@@ -44,6 +46,9 @@ class _RegisterPageState extends State<RegisterPage> {
         // login through http request
         final response = await http.post(
           Uri.parse(''), // api login url
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+          },
           body: {
             'user_id': idController.text,
             'user_pw': passwordController.text,
@@ -53,12 +58,13 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         // if response is OK
         if (response.statusCode == 200) {
+
           CustomDialog.showCustomDialog(context, "회원가입", "성공적으로 회원가입되었습니다!");
           Navigator.pop(context);
           return;
         } else {
           // error handling required
-          CustomDialog.showCustomDialog(context, "회원가입 실패", "요청이 거부되었습니다.");
+          CustomDialog.showCustomDialog(context, "회원가입", "요청이 거부되었습니다.");
         }
       } catch (e) {
         // network error handling
@@ -232,7 +238,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             SquareTile(
                               imagePath: 'asset/icons/btn_google.svg',
                               height: 40,
-                              onTap: () => {},
+                              onTap: () async {
+                                await signUpWithGoogle(context);
+                              },
                               notice: "Continue with Google",
                             ),
                             SizedBox(height: 20),

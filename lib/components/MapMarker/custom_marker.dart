@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:mapdesign_flutter/LocationInfo/AfterClickMarker.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
@@ -134,8 +135,9 @@ Future<BitmapDescriptor> getMarkerIcon(String imagePath, Size size) async {
 class CustomMarkerIcon extends StatefulWidget {
   final String imagePath;
   final Size size;
+  final bool isPlace;
 
-  CustomMarkerIcon({required this.imagePath, required this.size});
+  CustomMarkerIcon({required this.imagePath, required this.size, this.isPlace = false});
 
   @override
   _CustomMarkerIconState createState() => _CustomMarkerIconState();
@@ -143,13 +145,24 @@ class CustomMarkerIcon extends StatefulWidget {
 
 class _CustomMarkerIconState extends State<CustomMarkerIcon> {
   Uint8List? imageBytes;
-
   @override
   void initState() {
     super.initState();
     _loadImage();
   }
-
+  Future<dynamic> _getPlaceInfo(){
+    if(widget.isPlace){
+      return showModalBottomSheet(
+          context: context,
+          builder: (BuildContext context){
+            return LocalScreen();
+          }
+      );
+    }
+    else {
+      return Future.value();
+    }
+  }
   Future<void> _loadImage() async {
     imageBytes = await createMarkerImage(widget.imagePath, widget.size);
     setState(() {});
@@ -160,6 +173,9 @@ class _CustomMarkerIconState extends State<CustomMarkerIcon> {
     if (imageBytes == null) {
       return Container();
     }
-    return Image.memory(imageBytes!);
+    return GestureDetector(
+      onTap: _getPlaceInfo,
+      child: Image.memory(imageBytes!),
+    );
   }
 }
