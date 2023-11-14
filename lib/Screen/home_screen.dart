@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latLng;
+import 'package:mapdesign_flutter/Screen/location_category.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/MapMarker/custom_marker.dart';
 
@@ -224,7 +225,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
            right: 10.0,
            child: FloatingActionButton(
              onPressed: () => {
-               getCoordinates()
+               showModalBottomSheet(
+                 context: context,
+                 builder: (BuildContext context) {
+                   return LocationCategory(); // Your custom widget
+                 },
+               )
              },
              backgroundColor: AppColors.instance.skyBlue,
              child: Icon(
