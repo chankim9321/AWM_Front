@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
     try{
       // login through http request
       final response = await http.post(
-        Uri.parse('http://192.168.0.38:8080/login'), // api login urㅣ
+        Uri.parse('http://172.20.10.6:8080/login'), // api login urㅣ
         headers: <String, String>{
           'Content-Type': 'application/json',
         },
@@ -43,22 +43,25 @@ class _LoginPageState extends State<LoginPage> {
       );
       // if response is OK
       if(response.statusCode == 200){
-        print("통신 성공");
-        final accessToken = json.decode(response.headers['token']!);
+        print("fuckkkkk");
+        final String accessToken = response.headers['authorization']!;
+        print("fuckkkkk");
         await storage.write(key: 'AWMaccessToken', value: accessToken);
+        print("fuckkkkk------------");
 
         Navigator.of(context, rootNavigator: true).pop();
-
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
       }else{
         // error handling required
         CustomDialog.showCustomDialog(context, "로그인 실패!", "ID 또는 Password가 잘못 되었습니다.");
+        Navigator.of(context, rootNavigator: true).pop();
       }
     }catch(e){
       // network error handling
       CustomDialog.showCustomDialog(context, "네트워크 오류!", "서버와의 응답이 없습니다. 다시 시도해주세요.");
+      Navigator.of(context, rootNavigator: true).pop();
     }
-    Navigator.of(context, rootNavigator: true).pop();
+
   }
   void startMainPage() async{
     showDialog(context: context, builder: (context){

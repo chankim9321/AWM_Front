@@ -45,28 +45,32 @@ class _RegisterPageState extends State<RegisterPage> {
       try {
         // login through http request
         final response = await http.post(
-          Uri.parse(''), // api login url
+          Uri.parse('http://172.20.10.6:8080/join'), // api login url
           headers: <String, String>{
             'Content-Type': 'application/json',
           },
-          body: {
-            'user_id': idController.text,
-            'user_pw': passwordController.text,
-            'user_email': emailController.text,
-            'user_phone': phoneNumberController.text
-          },
+          body: jsonEncode({
+            'userId': idController.text,
+            'password': passwordController.text,
+            'email': emailController.text,
+            'phoneNumber': phoneNumberController.text
+          }),
         );
         // if response is OK
         if (response.statusCode == 200) {
-
           CustomDialog.showCustomDialog(context, "회원가입", "성공적으로 회원가입되었습니다!");
           Navigator.pop(context);
+          Navigator.pop(context);
           return;
-        } else {
+        }
+        // else if(response.statusCode == 401 || response.statusCode == 406){
+        //   CustomDialog.showCustomDialog(context, "Error", response.statusCode.toString()!);
+        // }
+        else{
           // error handling required
           CustomDialog.showCustomDialog(context, "회원가입", "요청이 거부되었습니다.");
         }
-      } catch (e) {
+      }  catch (e) {
         // network error handling
         CustomDialog.showCustomDialog(context, "회원가입", "서버와의 응답이 없습니다. 다시 시도해주세요.");
       }
