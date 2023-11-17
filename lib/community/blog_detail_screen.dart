@@ -1,9 +1,12 @@
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:mapdesign_flutter/community/comment.dart';
+import 'package:untitled/comment.dart';
+import 'dart:convert';
 
 class BlogDetailScreen extends StatefulWidget {
   final String title;
-  final String imageUrl;
+  final File? imageUrl;
   final String content;
   final int likes;
   final int comments;
@@ -67,12 +70,40 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
   int maxLines = 1;
   List<CommentWidget> mainComments = [];
 
-  void onCommentAdded(CommentWidget newComment) {
-    setState(() {
-      chatCount++;
-      mainComments.add(newComment);
-    });
+  void onCommentAdded(CommentWidget newComment) async {
+    // Assuming you have a method in your backend API to handle comment creation
+    bool success = await sendCommentToBackend(newComment);
+
+    if (success) {
+      setState(() {
+        chatCount++;
+        mainComments.add(newComment);
+      });
+    } else {
+      // Handle the case where sending the comment to the backend fails
+      // You may want to show an error message to the user
+      print('Failed to send comment to the backend');
+    }
   }
+
+  Future<bool> sendCommentToBackend(CommentWidget newComment) async {
+    // Replace 'YOUR_BACKEND_API_URL' with the actual URL of your backend API
+    try {
+      final response = await http.post(
+        Uri.parse('YOUR_BACKEND_API_URL/comments'), // Replace with the actual URL
+        body: {
+          'author': newComment.author,
+          'content': newComment.content,
+        },
+      );
+
+      return response.statusCode == 200;
+    } catch (error) {
+      print('Error sending comment to the backend: $error');
+      return false;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -92,14 +123,14 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                     });
                   },
                   itemBuilder: (BuildContext context) =>
-                      <PopupMenuEntry<SampleItem>>[
+                  <PopupMenuEntry<SampleItem>>[
                     const PopupMenuItem<SampleItem>(
                       value: SampleItem.itemOne,
-                      child: Text('게시물 신고'),
+                      child: Text('수정'),
                     ),
                     const PopupMenuItem<SampleItem>(
                       value: SampleItem.itemTwo,
-                      child: Text('유저차단'),
+                      child: Text('삭제'),
                     ),
                   ],
                 ),
@@ -133,7 +164,7 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20.0),
                     child: Container(
-                      child: Image.network(
+                      child: Image.file(
                         widget.imageUrl!,
                         fit: BoxFit.cover,
                       ),

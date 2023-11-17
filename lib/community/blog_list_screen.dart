@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mapdesign_flutter/community/blog_create_screen.dart';
-import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
 import 'package:mapdesign_flutter/community/search_screen.dart';
+import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
+import 'dart:convert';
 
 class BlogListScreen extends StatefulWidget {
   @override
@@ -11,8 +12,43 @@ class BlogListScreen extends StatefulWidget {
 
 class _BlogListScreenState extends State<BlogListScreen> {
   List<BlogPost> blogPosts = [];
+  Future<void> fetchBlogPosts(double latitude, double longitude) async {
+    final response = await http.get(
+      Uri.parse('YOUR_BACKEND_URL'),
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<BlogPost> posts = data.map((json) => BlogPost(
+          title: json['title'],
+          content: json['content'],
+          imageUrl: json['imageUrl'],
+          comments: json['comments'],
+          likes: json['likes'],
+          author: json['author'],
+          postID: json['postID']
+      )).toList();
+      setState(() {
+        blogPosts = posts;
+      });
+    } else {
+      throw Exception('Failed to load blog posts');
+    }
+  }
+
+
+
 
   @override
+  void initState() {
+    super.initState();
+
+    // Get user's location (example values, replace with actual implementation)
+    double userLatitude = 37.7749;
+    double userLongitude = -122.4194;
+
+    fetchBlogPosts(userLatitude, userLongitude);
+  }
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
@@ -51,12 +87,19 @@ class _BlogListScreenState extends State<BlogListScreen> {
                       child: Container(
                         width: 100,
                         height: 100,
-                        child: Image.network(
+                        child:
+                        Image.file(
+                          blogPosts[index].imageUrl!,
+                          width: 200,
+                          height: 200,
+                        ),
+
+                        /*Image.network(
                           blogPosts[index].imageUrl!,
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,
-                        ),
+                        ),*/
                       ),
                     ),
 
@@ -75,7 +118,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
                                   Text(
                                     blogPosts[index].title,
                                     style:
-                                        TextStyle(fontWeight: FontWeight.bold),
+                                    TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   SizedBox(height: 8),
                                   Text(
@@ -134,10 +177,10 @@ class _BlogListScreenState extends State<BlogListScreen> {
                   builder: (context) => BlogCreateScreen(), // 글작성 페이지 이동
                 ),
               ).then(
-                (newPost) {
+                    (newPost) {
                   if (newPost != null) {
                     setState(
-                      () {
+                          () {
                         blogPosts.add(newPost);
                       },
                     );
