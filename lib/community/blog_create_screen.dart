@@ -1,20 +1,48 @@
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 
 class BlogPost {
   final String title;
   final String content;
   final String author;
-  final DateTime postedDate;
-  final String? imageUrl; // Nullable imageUrl to store the image URL
+  final int comments;
+  final int likes;
+  final File? imageUrl; // Nullable imageUrl to store the image URL
+  final int postID;
 
   BlogPost({
     required this.title,
     required this.content,
     required this.author,
-    required this.postedDate,
-    this.imageUrl
+    required this.comments,
+    required this.likes,
+    required this.postID,
+    required this.imageUrl
+
   });
+  // Add a constructor for JSON serialization
+  BlogPost.fromJson(Map<String, dynamic> json)
+      : title = json['title'],
+        content = json['content'],
+        author = json['author'],
+        comments = json['comments'],
+        likes = json['likes'],
+        postID = json['postID'],
+        imageUrl = json['imageUrl'] != null ? File(json['imageUrl']) : null;
+
+  // Add a method to convert the object to JSON
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'content': content,
+    'author': author,
+    'comments': comments,
+    'likes': likes,
+    'postID': postID,
+    'imageUrl': imageUrl?.path, // Convert File to path string
+  };
 }
 
 class BlogCreateScreen extends StatefulWidget {
@@ -23,17 +51,35 @@ class BlogCreateScreen extends StatefulWidget {
 }
 
 class _BlogCreateScreenState extends State<BlogCreateScreen> {
+
+  Future<void> sendNewPostToBackendWithLocation(
+      double latitude, double longitude, BlogPost newPost) async {
+    final response = await http.post(
+      Uri.parse('YOUR_BACKEND_URL/posts'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        ...newPost.toJson(),
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create a new blog post');
+    }
+  }
+
   TextEditingController titleController = TextEditingController();
   TextEditingController contentController = TextEditingController();
-  String? imageUrl; // Store the selected image URL
+  File? imageUrl; // Store the selected image URL
 
   Future pickImage() async {
     final pickedFile =
-        await ImagePicker().getImage(source: ImageSource.gallery);
+    await ImagePicker().getImage(source: ImageSource.gallery);
 
     setState(() {
       if (pickedFile != null) {
-        imageUrl = pickedFile.path; // Store the selected image path
+        imageUrl = File(pickedFile.path); // Store the selected image path
       } else {
         print('No image selected.');
       }
@@ -46,7 +92,7 @@ class _BlogCreateScreenState extends State<BlogCreateScreen> {
       appBar: AppBar(
         title: Text('새 글 등록'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -63,7 +109,7 @@ class _BlogCreateScreenState extends State<BlogCreateScreen> {
             ),
             SizedBox(height: 10),
             if (imageUrl != null)
-              Image.network(
+              Image.file(
                 imageUrl!,
                 width: 200,
                 height: 200,
@@ -92,7 +138,7 @@ class _BlogCreateScreenState extends State<BlogCreateScreen> {
             ),
             SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async{
                 String title = titleController.text;
                 String content = contentController.text;
 
@@ -100,10 +146,16 @@ class _BlogCreateScreenState extends State<BlogCreateScreen> {
                 BlogPost newPost = BlogPost(
                   title: title,
                   content: content,
-                  author: 'Your Author',
-                  postedDate: DateTime.now(),
+                  author: 'Author',
                   imageUrl: imageUrl,
+                  likes: 1,
+                  comments: 1,
+                  postID: 1,
                 );
+                double userLatitude = 37.7749;
+                double userLongitude = -122.4194;
+                await sendNewPostToBackendWithLocation(userLatitude, userLongitude, newPost);
+
                 Navigator.pop(context, newPost);
               },
               child: Text('등록하기'),
