@@ -153,9 +153,13 @@ class _CustomMarkerIconState extends State<CustomMarkerIcon> {
   Future<dynamic> _getPlaceInfo(){
     if(widget.isPlace){
       return showModalBottomSheet(
+          isScrollControlled: true,
           context: context,
           builder: (BuildContext context){
-            return LocalScreen();
+            return Container(
+              height: MediaQuery.of(context).size.height,
+              child: LocalScreen()
+            );
           }
       );
     }
