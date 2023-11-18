@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mapdesign_flutter/LocationInfo/place_component/sns_ui_heart_icon_screen.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/community/content.dart';
 import 'modifypage.dart';
@@ -12,12 +13,13 @@ class DetailScreen extends StatefulWidget {
 
 class _DetailScreenState extends State<DetailScreen> {
   final List<String> imagePaths = [
-    'asset/img/bombom.jpg',
-    'asset/img/dridri.jpg',
-    'asset/img/drinking.jpg',
-    'asset/img/ddrink.jpg',
-    'asset/img/boom.jpg',
-    'asset/img/boomenu.jpg',
+    'asset/img/tower_image.jpeg',
+    'asset/img/test_1.webp',
+    'asset/img/test_2.webp',
+    'asset/img/test_3.jpeg',
+    'asset/img/test_4.jpg',
+    'asset/img/test_5.jpg',
+    'asset/img/test_6.jpg',
   ];
 
   int _selectedIndex = 0; // For the bottom navigation bar
@@ -37,9 +39,9 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
-        backgroundColor: Colors.transparent.withOpacity(0.5),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: Colors.black),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.border_color),
@@ -60,7 +62,7 @@ class _DetailScreenState extends State<DetailScreen> {
             CarouselSlider.builder(
               itemCount: imagePaths.length,
               options: CarouselOptions(
-                height: screenHeight * 0.3, // Adjust the image height
+                height: screenHeight * 0.35, // Adjust the image height
                 viewportFraction: 0.8,
                 enlargeCenterPage: true,
                 autoPlay: true,
@@ -69,11 +71,12 @@ class _DetailScreenState extends State<DetailScreen> {
                 final imagePath = imagePaths[index];
                 return Container(
                   width: screenWidth * 0.85, // Adjust the image width
+                  height: 200.0,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
+                    borderRadius: BorderRadius.circular(20.0),
                     child: Image.asset(
                       imagePath,
-                      fit: BoxFit.fitWidth, // Use fitWidth to ensure the image is not cropped
+                      fit: BoxFit.cover, // Use fitWidth to ensure the image is not cropped
                     ),
                   ),
                 );
@@ -81,40 +84,49 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
             SizedBox(height: screenHeight * 0.05), // Space between the carousel and the text
             Text(
-              '이름: 봄봄',
+              'Place',
               style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             ),
-            Text(
-              '주소: 대구시 게대동문',
-              style: TextStyle(fontSize: 20.0, color: Colors.grey),
-            ),
-            Text(
-              '카테고리: 카페',
-              style: TextStyle(fontSize: 20.0, color: Colors.grey),
-            ),
+            SnsUIHeartIconScreen(),
             SizedBox(height: screenHeight * 0.1), // Adjust bottom space
+            Container(
+              margin: EdgeInsets.all(10.0),
+              child: Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => {},
+                    icon: Icon(
+                        Icons.info_outlined
+                    ),
+                    label: Text(
+                        ""
+                    ),
+                  )
+                ],
+              ),
+            )
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group),
-            label: '커뮤니티',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.report),
-            label: '신고',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.star),
-            label: '즐겨찾기',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue[400],
-        onTap: _onItemTapped,
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   items: const <BottomNavigationBarItem>[
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.group),
+      //       label: '커뮤니티',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.report),
+      //       label: '신고',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.star),
+      //       label: '즐겨찾기',
+      //     ),
+      //   ],
+      //   currentIndex: _selectedIndex,
+      //   selectedItemColor: Colors.blue[400],
+      //   onTap: _onItemTapped,
+      // ),
     );
   }
 }

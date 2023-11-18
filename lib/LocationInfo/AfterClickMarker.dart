@@ -1,38 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
-import 'locainfo.dart';
+import 'place_info.dart';
 
 class LocalScreen extends StatefulWidget {
+  const LocalScreen({super.key});
   @override
   _LocalScreenState createState() => _LocalScreenState();
 }
 
 class _LocalScreenState extends State<LocalScreen> {
   List<String> imagePaths = [
-    'asset/img/bombom.jpg',
-    'asset/img/dridri.jpg',
-    'asset/img/drinking.jpg',
-    'asset/img/ddrink.jpg',
-    'asset/img/boom.jpg',
-    'asset/img/boomenu.jpg',
+    'asset/img/tower_image.jpeg',
+    'asset/img/test_1.webp',
+    'asset/img/test_2.webp',
+    'asset/img/test_3.jpeg',
+    'asset/img/test_4.jpg',
+    'asset/img/test_5.jpg',
+    'asset/img/test_6.jpg',
   ];
-
+  String mainImagePath = 'asset/img/tower_image.jpeg';
   int currentPage = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // backgroundColor: Colors.red,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          color: Colors.white,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
+        leading: Container(
+          margin: EdgeInsets.only(top: 15.0),
+          child: IconButton(
+            icon: Icon(Icons.arrow_back, size: 40.0),
+            color: Colors.white,
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        )
       ),
       body: PageView.builder(
         itemCount: imagePaths.length,
@@ -52,31 +58,38 @@ class _LocalScreenState extends State<LocalScreen> {
                   ),
                 ),
               ),
-              Container(
-                color: Colors.black.withOpacity(0.5),
-              ),
+              // Container(
+              //   color: Colors.black.withOpacity(0.5),
+              // ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Container(
                     color: Colors.transparent,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 20.0),
-                        Text(
-                          '봄봄',
-                          style: TextStyle(
-                            fontSize: 32.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        Container(
+                          margin: EdgeInsets.only(left: 20.0),
+                          child: Text(
+                            'Test View',
+                            style: TextStyle(
+                              fontSize: 32.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                        Text(
-                          '주소: 대구시, 계명대동문',
-                          style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.normal,
-                            color: Colors.white,
+                        Container(
+                          margin: EdgeInsets.only(left: 20.0),
+                          child: Text(
+                            'this is test view.',
+                            style: TextStyle(
+                              fontSize: 17.0,
+                              fontWeight: FontWeight.normal,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         SizedBox(height: 20.0),
@@ -93,6 +106,7 @@ class _LocalScreenState extends State<LocalScreen> {
                                       imagePaths[(i + currentPage) % imagePaths.length],
                                       width: 62.0,
                                       height: 62.0,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
@@ -120,21 +134,41 @@ class _LocalScreenState extends State<LocalScreen> {
                           ],
                         ),
                         SizedBox(height: 16.0),
-                        GestureDetector(
-                          onTap: () {
-                            _openDetailScreen();
-                          },
-                          child: SafeArea(
+                        SafeArea(
+                          child: Container(
+                            margin: EdgeInsets.only(left: 15.0, bottom: 20.0),
                             child: Align(
-                              alignment: Alignment.bottomRight,
-                              child: Icon(
-                                Icons.arrow_forward_outlined,
-                                size: 32.0,
-                                color: Colors.white,
-                              ),
+                              alignment: Alignment.bottomLeft,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(0.85),
+                                  minimumSize: Size(50.0, 60.0),
+                                  shape: StadiumBorder(),
+                                ),
+                                onPressed: () => {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DetailScreen())
+                                    )
+                                },
+                                icon: Icon(
+                                  Icons.arrow_right_alt,
+                                  color: Colors.black,
+                                  size: 40.0,
+                                ),
+                                label: Text(
+                                  "More Detailed Here!",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 17.0
+                                  ),
+                                ),
+                              )
                             ),
-                          )
-                        ),
+                          ),
+                        )
                       ],
                     ),
                   ),
