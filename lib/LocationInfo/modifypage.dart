@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -10,15 +11,22 @@ class ModifyScreen extends StatefulWidget {
 }
 
 class _ModifyScreenState extends State<ModifyScreen> {
-  quill.QuillController? _controller;
-  final ImagePicker _picker = ImagePicker();
+  quill.QuillController? _controller; // QuillController 인스턴스 선언
 
   @override
   void initState() {
     super.initState();
-    _loadDocument();
+    _loadDocument(); // 초기화 시 문서 로드
   }
 
+  // 문서를 리셋하는 메서드
+  void _resetDocument() {
+    setState(() {
+      _controller = quill.QuillController.basic();
+    });
+  }
+
+  // SharedPreferences에서 문서를 로드하는 비동기 메서드
   Future<void> _loadDocument() async {
     final prefs = await SharedPreferences.getInstance();
     final String? savedJson = prefs.getString('saved_document');
@@ -40,9 +48,10 @@ class _ModifyScreenState extends State<ModifyScreen> {
       appBar: AppBar(
         title: Text('Edit Text'),
         actions: [
+          // 리셋 및 저장 버튼 추가
           IconButton(
-            icon: Icon(Icons.image),
-            onPressed: _pickImage,
+            icon: Icon(Icons.refresh),
+            onPressed: _resetDocument,
           ),
           IconButton(
             icon: Icon(Icons.save),
@@ -61,11 +70,22 @@ class _ModifyScreenState extends State<ModifyScreen> {
         ),
         child: Column(
           children: [
-            const quill.QuillToolbar(),
+            quill.QuillToolbar(
+              configurations: quill.QuillToolbarConfigurations(
+                embedButtons: FlutterQuillEmbeds.toolbarButtons(
+                  imageButtonOptions: QuillToolbarImageButtonOptions(),
+                ),
+              ),
+            ),
             Expanded(
               child: quill.QuillEditor.basic(
-                  configurations: const quill.QuillEditorConfigurations(
+                  configurations:  quill.QuillEditorConfigurations(
+                    padding: const EdgeInsets.all(16),
+                    embedBuilders: kIsWeb ? FlutterQuillEmbeds.editorWebBuilders() : FlutterQuillEmbeds.editorBuilders(),
                     readOnly: false,
+                    scrollable: true,
+                    expands: false,
+                    autoFocus: false,
                   )
               ),
             ),
@@ -75,18 +95,7 @@ class _ModifyScreenState extends State<ModifyScreen> {
     );
   }
 
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      final String imageUrl = image.path;
-
-      final index = _controller!.selection.baseOffset;
-      final length = _controller!.selection.extentOffset;
-      _controller!.replaceText(index, length, quill.BlockEmbed.image(imageUrl), null);
-    }
-  }
-
+  // 문서를 저장하는 메서드
   void _saveDocument() async {
     if (_controller == null) return;
 
