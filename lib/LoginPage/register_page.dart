@@ -19,6 +19,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final storage = FlutterSecureStorage();
   final _formKey = GlobalKey<FormState>();
   final idController = TextEditingController();
   final emailController = TextEditingController();
@@ -52,20 +53,19 @@ class _RegisterPageState extends State<RegisterPage> {
           body: jsonEncode({
             'userId': idController.text,
             'password': passwordController.text,
-            'email': emailController.text,
-            'phoneNumber': phoneNumberController.text
+            // 'email': emailController.text,
+            // 'phoneNumber': phoneNumberController.text
           }),
         );
         // if response is OK
         if (response.statusCode == 200) {
+          final token = response.headers['authorization'];
+          storage.write(key: 'token', value: token);
           CustomDialog.showCustomDialog(context, "회원가입", "성공적으로 회원가입되었습니다!");
           Navigator.pop(context);
           Navigator.pop(context);
           return;
         }
-        // else if(response.statusCode == 401 || response.statusCode == 406){
-        //   CustomDialog.showCustomDialog(context, "Error", response.statusCode.toString()!);
-        // }
         else{
           // error handling required
           CustomDialog.showCustomDialog(context, "회원가입", "요청이 거부되었습니다.");
