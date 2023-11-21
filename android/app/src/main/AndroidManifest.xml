@@ -4,7 +4,8 @@
     <application
         android:label="mapdesign_flutter"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true"> <!-- Gal: For saving to album in API 29 :Gal-->
         <meta-data android:name="com.google.android.geo.API_KEY"
         android:value="AIzaSyBkDj7-QGcvZ2QOk_ciydi96ZxyiRwcPTk"/>
         <activity
@@ -34,4 +35,8 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+    <!-- Gal: For supporting API <= 29 :Gal-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+    <!-- Gal: For supporting API <= 29 :Gal-->
 </manifest>
