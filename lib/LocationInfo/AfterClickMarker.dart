@@ -20,9 +20,21 @@ class _LocalScreenState extends State<LocalScreen> {
   ];
   String mainImagePath = 'asset/img/tower_image.jpeg';
   int currentPage = 0;
+  final double imageWidth = 60.0; // 이미지 너비
+  final double imageHeight = 60.0; // 이미지 높이
+  final double padding = 8.0; // 패딩
+
 
   @override
   Widget build(BuildContext context) {
+    // 디바이스 너비 계산
+    final deviceWidth = MediaQuery.of(context).size.width;
+
+    // 표시할 수 있는 이미지의 최대 개수 계산
+    int maxImages = (deviceWidth / (imageWidth + padding * 2)).floor();
+    if (maxImages > imagePaths.length) {
+      maxImages = imagePaths.length;
+    }
     return Scaffold(
       // backgroundColor: Colors.red,
       extendBodyBehindAppBar: true,
@@ -96,32 +108,31 @@ class _LocalScreenState extends State<LocalScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            for (int i = 0; i < imagePaths.length; i++)
-                              if (i < 4)
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    child: Image.asset(
-                                      imagePaths[(i + currentPage) % imagePaths.length],
-                                      width: 62.0,
-                                      height: 62.0,
-                                      fit: BoxFit.cover,
-                                    ),
+                            for (int i = 0; i < maxImages-1; i++)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Image.asset(
+                                    imagePaths[(i + currentPage) % imagePaths.length],
+                                    width: imageWidth,
+                                    height: imageHeight,
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                            if (imagePaths.length > 4)
+                              ),
+                            if (imagePaths.length > maxImages)
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10.0),
                                   child: Container(
-                                    width: 62.0,
-                                    height: 62.0,
+                                    width: imageWidth,
+                                    height: imageHeight,
                                     color: Colors.grey,
                                     child: Center(
                                       child: Text(
-                                        '+${imagePaths.length - 4}',
+                                        '+${imagePaths.length - maxImages}',
                                         style: TextStyle(
                                           fontSize: 18.0,
                                           color: Colors.white,

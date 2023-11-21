@@ -54,22 +54,25 @@ class _LocationWritePageState extends State<LocationWritePage> {
         //   child: Text("카메라"),
         // ),
         // SizedBox(width: 30),
-
-        ElevatedButton(
-          onPressed: () {
-            getImage(ImageSource.gallery); //getImage 함수를 호출해서 갤러리에서 사진 가져오기
-          },
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(400, 50),
-              shape: StadiumBorder(),
-              backgroundColor: AppColors.instance.skyBlue,
-            ),
-          child: const Row(
-            children: [
-              Icon(Icons.camera_alt_outlined),
-              Text(" 앨범에서 가져오기")
-            ],
-          )
+        Container(
+          margin: EdgeInsets.all(10.0),
+          child: ElevatedButton(
+              onPressed: () {
+                getImage(ImageSource.gallery); //getImage 함수를 호출해서 갤러리에서 사진 가져오기
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(MediaQuery.of(context).size.width-20, 50), // 수정된 부분
+                shape: StadiumBorder(),
+                backgroundColor: AppColors.instance.skyBlue,
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.camera_alt_outlined),
+                  Text(" 앨범에서 가져오기")
+                ],
+              )
+          ),
         ),
       ],
     );
@@ -82,78 +85,72 @@ class _LocationWritePageState extends State<LocationWritePage> {
             title: Text("모두의 장소 등록"),
             backgroundColor: AppColors.instance.skyBlue,
           ),
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(
-                width: double.infinity,
-                height: 20.0,
-              ),
-              // 사진 추가
-              _buildPhotoArea(),
-              SizedBox(
-                width: double.infinity,
-                height: 20.0,
-              ),
-              _buildButton(),
-              // 지명 입력
-              Container(
-                margin: EdgeInsets.only(
-                    top: 30.0, right: 10.0, left: 10.0, bottom: 10.0),
-                width: double.infinity,
-                child: TextField(
-                  controller: _textController,
-                  maxLength: 20,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "장소의 이름을 입력하세요!",
-                  ),
-                  autofocus: true,
+          body: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 20.0,
                 ),
-              ),
-              // 설명창 추가
-
-              SingleChildScrollView(
-                child: SafeArea(
-                  minimum: EdgeInsets.only(left: 10, right: 10),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SafeArea(
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.instance.skyBlue,
-                                minimumSize: Size(double.infinity, 200)
-                            ),
-                            onPressed: () => {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (context) => LocationWriterForm(controller: _quillController))
-                              )
-                            },
-                            icon: Icon(Icons.edit_note),
-                            label: Text("모두에게 공유하고 싶은 정보를 입력하세요!"),
-                          )
-                      ),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 10.0,
-                      ),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          shape: StadiumBorder(),
-                          minimumSize: Size(double.infinity, 50),
-                        ),
-                        onPressed: () => {},
-                        icon: Icon(Icons.share_location),
-                        label: Text("등록"),
-                      )
-                    ],
+                // 사진 추가
+                _buildPhotoArea(),
+                SizedBox(
+                  width: double.infinity,
+                  height: 20.0,
+                ),
+                // 사진 등록 버튼
+                _buildButton(),
+                // 지명 입력
+                Container(
+                  margin: EdgeInsets.only(
+                      top: 30.0, right: 10.0, left: 10.0, bottom: 10.0),
+                  width: double.infinity,
+                  child: TextField(
+                    controller: _textController,
+                    maxLength: 20,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: "장소의 이름을 입력하세요!",
+                    ),
+                    autofocus: true,
+                  ),
+                ),
+                // 입력폼으로 이동
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.instance.skyBlue,
+                      minimumSize: Size(double.infinity, 200)
+                  ),
+                  onPressed: () => {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => LocationWriterForm(controller: _quillController))
+                    )
+                  },
+                  icon: Icon(Icons.edit_note),
+                  label: Text("모두에게 공유하고 싶은 정보를 입력하세요!"),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 10.0,
+                ),
+                Container(
+                  margin: EdgeInsets.all(10.0),
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      shape: StadiumBorder(),
+                      minimumSize: Size(double.infinity - 20, 50),
+                    ),
+                    onPressed: () => {},
+                    icon: Icon(Icons.share_location),
+                    label: Text("등록"),
                   ),
                 )
-              )
-            ],
+              ],
+              ),
+            )
           ),
-        )
     );
   }
 }

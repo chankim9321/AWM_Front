@@ -16,20 +16,27 @@ Future<void> signUpWithGoogle(BuildContext context) async {
     // 백엔드로 토큰 전송 및 사용자 등록 로직 구현
     // 예: HTTP POST 요청을 통해 토큰과 함께 사용자 정보를 백엔드로 전송
     // 백엔드는 이 정보를 사용하여 사용자가 새로운 사용자인지 확인하고, 새로운 사용자라면 회원가입 처리를 합니다.
+    // final GoogleSignInAccount? googleSignInAccount = await GoogleSignIn().signIn();
+    // final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount!.authentication;
     try{
       // http request
+      // final accessToken = googleSignInAuthentication.accessToken;
+      // print(accessToken);
       final response = await http.post(
         // 예시 IP 주소
-        Uri.parse('http://27.124.178.180:8080/login'), // API URL
+        Uri.parse('http://172.20.10.6:8080/oauth2/authorization/google'), // API URL
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': 'Bearer $accessToken'
+        }
       );
       // if response is OK
       if(response.statusCode == 200){
         // Spring Security 에서 발급해준 토큰을 저장
-        // final storage = FlutterSecureStorage();
-        // final responseData = json.decode(response.body);
-        // final String token = responseData['token'];
-        // await storage.write(key: 'token', value: token);
-
+        final storage = FlutterSecureStorage();
+        final responseData = json.decode(response.body);
+        final String token = responseData['token'];
+        await storage.write(key: 'token', value: token);
       }else{
         // error handling required
         CustomDialog.showCustomDialog(context, "실패", "로그인에 실패했습니다!");

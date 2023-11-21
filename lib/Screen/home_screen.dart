@@ -1,12 +1,15 @@
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latLng;
+import 'package:http/http.dart' as http;
+import 'package:mapdesign_flutter/Screen/home_drawer/home_drawer.dart';
 import 'package:mapdesign_flutter/Screen/location_category.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/MapMarker/custom_marker.dart';
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +18,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  final storage = FlutterSecureStorage();
   latLng.LatLng? currentLocation;
   bool highlightMarker = false;
   bool toggleAimPoint = false;
@@ -37,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() {
       highlightMarker = true; // 마커를 강조
     });
+    getMarkerInfoFromServer();
   }
   Future<void> getLocationData() async{
     bool serviceEnabled;
@@ -83,24 +88,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     print(center.latitude);
     print(center.longitude);
   }
+  Future<String> getToken() async{
+    return await storage.read(key: 'token') ?? '';
+  }
+  void getMarkerInfoFromServer() async{
+    try{
+      final latitude = currentLocation!.latitude.toDouble();
+      final longitude = currentLocation!.longitude.toDouble();
+      print(latitude);
+      print(longitude);
+      final range = 1000;
+      // final token = await getToken();
+      final response = await http.get(
+          Uri.parse('http://172.20.10.6:8080/location/search/nearby?latitude=$latitude&longitude=$longitude&range=1000'),
+          headers: <String, String>{
+            'Content-Type' : 'application/json',
+          }
+      );
+      print('성공');
+    }catch(e){
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var markers = <Marker>[];
     if(currentLocation != null){
-      if(toggleAimPoint){
-        markers.add(
-          Marker(
-            point: mapController.mapController.camera.center,
-            width: 60,
-            height: 60,
-              child: Icon(
-                Icons.add_location,
-                color: AppColors.instance.skyBlue,
-                size: 60,
-              ),
-          )
-        );
-      }
+      // 디버깅 전용 마커
+      // if(toggleAimPoint){
+      //   markers.add(
+      //     Marker(
+      //       point: mapController.mapController.camera.center,
+      //       width: 60,
+      //       height: 60,
+      //         child: Icon(
+      //           Icons.add_location,
+      //           color: AppColors.instance.red,
+      //           size: 60,
+      //         ),
+      //     )
+      //   );
+      // }
       markers.add(
         // current position
         Marker(
@@ -131,42 +160,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // 이후 API 요청을 하여 주변 근처 위치를 탐색
       // markers.add()
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: Container(
-          width: double.infinity,
-          height: 40,
-          decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(5)),
-          child: Center(
-            child: TextField(
-              style: TextStyle(color: Colors.black),
-              decoration: InputDecoration(
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: AppColors.instance.skyBlue,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {
-                      /* Clear the search field */
-                    },
-                    color: AppColors.instance.skyBlue,
-                  ),
-                  hintText: 'Search & Explore',
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(
-                    color: Colors.black,
-                  ),
+    var appBar = AppBar(
+      title: Container(
+        width: double.infinity,
+        height: 40,
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(5)),
+        child: Center(
+          child: TextField(
+            style: TextStyle(color: Colors.black),
+            decoration: InputDecoration(
+              prefixIcon: Icon(
+                Icons.search,
+                color: AppColors.instance.skyBlue,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.clear),
+                onPressed: () {
+                  /* Clear the search field */
+                },
+                color: AppColors.instance.skyBlue,
+              ),
+              hintText: 'Search & Explore',
+              border: InputBorder.none,
+              hintStyle: TextStyle(
+                color: Colors.black,
               ),
             ),
           ),
         ),
-        backgroundColor: AppColors.instance.whiteGrey,
       ),
-      drawer: Drawer(
+      backgroundColor: AppColors.instance.skyBlue,
+    );
+    var appBarHeight = appBar.preferredSize.height;
+    final availableHeight = MediaQuery.of(context).size.height - appBarHeight - MediaQuery.of(context).padding.top;
 
-      ),
+    return Scaffold(
+      appBar: appBar,
+      drawer: HomeDrawer(),
       body: Stack(
         children: [
           FlutterMap(
@@ -188,6 +219,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
+          if (toggleAimPoint) // toggleAimPoint 상태에 따라 아이콘 표시 여부 결정
+            Positioned(
+              top: (availableHeight - 60) / 2, // 아이콘의 높이를 고려하여 중앙 정렬
+              left: MediaQuery.of(context).size.width / 2 - 30, // 아이콘의 너비를 고려하여 중앙 정렬
+              child: Icon(
+                Icons.add_location,
+                size: 60,
+                color: AppColors.instance.skyBlue,
+              ),
+            ),
         ],
       ),
       floatingActionButton: Stack(

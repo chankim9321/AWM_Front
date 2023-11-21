@@ -108,26 +108,26 @@ class _LoginPageState extends State<LoginPage> {
                 //username
                 MyTextField(
                     controller: idController,
-                    hintText: 'Username or email',
+                    hintText: '아이디를 입력해주세요',
                     obscureText: false,
                 ),
                 SizedBox(height: 15),
                 //password
                 MyTextField(
                     controller: passwordController,
-                    hintText: 'Password',
+                    hintText: '비밀번호를 입력해주세요',
                     obscureText: true
                 ),
                 SizedBox(height: 15),
                 MyButton(
                     onTap: signUserIn,
-                    text: 'Sign In',
+                    text: '로그인',
                 ),
                 SizedBox(height: 20),
 
                 MyButton(
                   onTap: startMainPage,
-                  text: 'Continue without login!',
+                  text: '로그인 없이 시작하기',
                 ),
                 SizedBox(height: 20),
                 // forgot password

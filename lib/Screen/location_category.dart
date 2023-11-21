@@ -16,7 +16,7 @@ class _LocationCategoryState extends State<LocationCategory> {
   Color iconColor = AppColors.instance.skyBlue;
   Color backgroundColor = AppColors.instance.whiteGrey;
   final List<String> categoryKey = [
-    "도서관", "음식점", "자전거", "공원", "명소", "카페", "운동", "학교", "주차장", "흡연장", "쓰레기통", "편의점", "기타"
+    "도서관", "음식점", "자전거", "공원", "명소", "카페", "운동", "학교", "주차장", "흡연장", "쓰레기통", "편의점", "정류장", "약국", "프린트","기타"
   ];
   final List<Map<String, Icon>> categoryList = [
     {"도서관" : Icon(Icons.menu_book, semanticLabel: "도서관",)},
@@ -31,7 +31,10 @@ class _LocationCategoryState extends State<LocationCategory> {
     {"흡연장" : Icon(Icons.smoking_rooms)},
     {"쓰레기통" : Icon(Icons.delete)},
     {"편의점" : Icon(Icons.local_convenience_store)},
-    {"기타" : Icon(Icons.not_listed_location)}
+    {"정류장" : Icon(Icons.bus_alert_rounded)},
+    {"프린트" : Icon(Icons.print)},
+    {"약국" : Icon(Icons.medical_services)},
+    {"기타" : Icon(Icons.not_listed_location)},
   ];
 
 
@@ -47,28 +50,28 @@ class _LocationCategoryState extends State<LocationCategory> {
         itemCount: categoryList.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () => {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => LocationWritePage(mapCategoryName: categoryList[index].keys.first) // 글 쓰는 페이지로 이동
-                        )
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () => {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LocationWritePage(mapCategoryName: categoryList[index].keys.first) // 글 쓰는 페이지로 이동
                       )
-                    },
-                    icon: categoryList[index].values.first
-                  ),
-                  Text(categoryList[index].keys.first)
-                ],
-              )
-            );
+                    )
+                  },
+                  icon: categoryList[index].values.first
+                ),
+                Text(categoryList[index].keys.first)
+              ],
+            )
+          );
         },
       )
     );
