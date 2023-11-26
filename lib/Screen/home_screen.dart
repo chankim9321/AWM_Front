@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latLng;
 import 'package:http/http.dart' as http;
+import 'package:mapdesign_flutter/APIs/LocationAPIs/location_marker.dart';
 import 'package:mapdesign_flutter/Screen/home_drawer/home_drawer.dart';
 import 'package:mapdesign_flutter/Screen/location_category.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
@@ -22,14 +23,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   latLng.LatLng? currentLocation;
   bool highlightMarker = false;
   bool toggleAimPoint = false;
+  List<CircleMarker> circles = [];
+  double zoom = 15.0;
+  List<MarkerModel> markerList = [];
+
   late final mapController = AnimatedMapController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
   );
-  List<CircleMarker> circles = [];
-
-  double zoom = 15.0;
   @override
   void initState() {
     // TODO: implement initState
@@ -41,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() {
       highlightMarker = true; // 마커를 강조
     });
-    getMarkerInfoFromServer();
+    // getMarkerInfoFromServer();
   }
   Future<void> getLocationData() async{
     bool serviceEnabled;
@@ -91,45 +93,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<String> getToken() async{
     return await storage.read(key: 'token') ?? '';
   }
-  void getMarkerInfoFromServer() async{
+  void loadMarkerList() async{
     try{
-      final latitude = currentLocation!.latitude.toDouble();
-      final longitude = currentLocation!.longitude.toDouble();
-      print(latitude);
-      print(longitude);
-      final range = 1000;
-      // final token = await getToken();
-      final response = await http.get(
-          Uri.parse('http://172.20.10.6:8080/location/search/nearby?latitude=$latitude&longitude=$longitude&range=1000'),
-          headers: <String, String>{
-            'Content-Type' : 'application/json',
-          }
-      );
-      print('성공');
+      markerList = await MarkerModel.fetchMarkers();
     }catch(e){
-      print(e);
+
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // 마커 요청
+    loadMarkerList();
+    // 바인딩 할 마커 리스트 변수
     var markers = <Marker>[];
     if(currentLocation != null){
-      // 디버깅 전용 마커
-      // if(toggleAimPoint){
-      //   markers.add(
-      //     Marker(
-      //       point: mapController.mapController.camera.center,
-      //       width: 60,
-      //       height: 60,
-      //         child: Icon(
-      //           Icons.add_location,
-      //           color: AppColors.instance.red,
-      //           size: 60,
-      //         ),
-      //     )
-      //   );
-      // }
       markers.add(
         // current position
         Marker(
@@ -138,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             height: 60,
             child: CustomMarkerIcon(
               isPlace: false,
-              imagePath: "asset/img/pepe.webp",
+              imagePath: "asset/img/portrait.webp",
               size: Size(400.0, 400.0),
             ),
         ),
@@ -151,13 +129,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             height: 60,
             child: CustomMarkerIcon(
               isPlace: true,
-              imagePath: "asset/img/bombom.jpg",
+              imagePath: "asset/img/cigarettes.webp",
               size: Size(400.0, 400.0),
             )
         )
       );
 
+      markerList.forEach((element) {
+        markers.add(
+          Marker(
+            point: latLng.LatLng(element.latitude, element.longitude),
+            width: 60,
+            height: 60,
+            child: CustomMarkerIcon(
+              isPlace: true,
+              imagePath: "asset/img/wojak.webp",
+              size: Size(400, 400),
+            )
+          )
+        );
+      });
       // 이후 API 요청을 하여 주변 근처 위치를 탐색
+
+
       // markers.add()
     }
     var appBar = AppBar(
