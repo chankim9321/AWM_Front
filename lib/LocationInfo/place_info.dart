@@ -21,7 +21,12 @@ class _DetailScreenState extends State<DetailScreen> {
     'asset/img/test_5.jpg',
     'asset/img/test_6.jpg',
   ];
-
+  final List<Map<String, Icon>> buttonLabels = [
+    {"About this place" : Icon(Icons.feed_outlined)},
+    {"Commit Log" : Icon(Icons.checklist_rtl)},
+    {"Chat" : Icon(Icons.chat)},
+    {"Contributor" : Icon(Icons.military_tech)},
+  ];
   int _selectedIndex = 0; // For the bottom navigation bar
 
   void _onItemTapped(int index) {
@@ -88,21 +93,47 @@ class _DetailScreenState extends State<DetailScreen> {
               style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             ),
             SnsUIHeartIconScreen(),
-            SizedBox(height: screenHeight * 0.1), // Adjust bottom space
+            SizedBox(height: 10.0), // Adjust bottom space
+
             Container(
-              margin: EdgeInsets.all(10.0),
-              child: Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => {},
-                    icon: Icon(
-                        Icons.info_outlined
+              margin: EdgeInsets.only(left: 10, right: 10),
+              width: MediaQuery.of(context).size.width,
+
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2, // Number of columns
+                  crossAxisSpacing: 10.0, // Horizontal space between items
+                  mainAxisSpacing: 10.0, // Vertical space between items
+                  childAspectRatio: 1.5,
+                ),
+                itemCount: 4,
+                itemBuilder: (BuildContext context, int index) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.instance.whiteGrey,
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    label: Text(
-                        ""
-                    ),
-                  )
-                ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                            onPressed: () => {
+                              // Navigator.push(
+                              //     context,
+                              //     MaterialPageRoute(
+                              //         builder: (context) => LocationWritePage(mapCategoryName: categoryList[index].keys.first) // 글 쓰는 페이지로 이동
+                              //     )
+                              // )
+                            },
+                            icon: buttonLabels[index].values.first
+                        ),
+                        Text(buttonLabels[index].keys.first)
+                      ],
+                    )
+                  );
+                },
               ),
             )
           ],
