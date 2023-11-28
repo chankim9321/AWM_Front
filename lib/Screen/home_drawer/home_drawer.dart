@@ -79,7 +79,10 @@ class _HomeDrawerState extends State<HomeDrawer> {
                               title: Text("설정", style: TextStyle(color: Colors.white),),
                             ),
                             ListTile(
-                              onTap: () {},
+                              onTap: () {
+
+
+                              },
                               leading: Icon(
                                 Icons.logout,
                                 color: Colors.white,

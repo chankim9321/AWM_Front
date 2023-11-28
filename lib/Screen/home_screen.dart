@@ -26,6 +26,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<CircleMarker> circles = [];
   double zoom = 15.0;
   List<MarkerModel> markerList = [];
+  List<double> radius = [0, 300, 1000, 2000, 5000, 10000];
+  int radiusIndex = 0;
+
+  void increaseRadiusIndex(){
+    setState(() {
+      if(radiusIndex < radius.length - 1){
+        radiusIndex++;
+      }
+    });
+  }
+  void decreaseRadiusIndex(){
+    setState(() {
+      if(radiusIndex > 1){
+        radiusIndex--;
+      }
+    });
+  }
 
   late final mapController = AnimatedMapController(
       vsync: this,
@@ -74,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             borderColor: Colors.blue.withOpacity(0.1),
             borderStrokeWidth: 2,
             useRadiusInMeter: true,  // 미터 단위 사용
-            radius: 300  //
+            radius: radius[radiusIndex],  //
         ),
       );
     });
@@ -90,12 +107,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     print(center.latitude);
     print(center.longitude);
   }
-  Future<String> getToken() async{
-    return await storage.read(key: 'token') ?? '';
-  }
   void loadMarkerList() async{
     try{
-      markerList = await MarkerModel.fetchMarkers();
+      markerList = await MarkerModel.fetchMarkers(radius[radiusIndex], radius[radiusIndex-1]);
     }catch(e){
 
     }
@@ -134,7 +148,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             )
         )
       );
-
       markerList.forEach((element) {
         markers.add(
           Marker(
@@ -245,9 +258,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
            bottom: 80.0,
            right: 10.0,
            child: FloatingActionButton(
-             onPressed: () => {
-               setShowAimPoint()
-             },
+             onPressed: () {
+               setShowAimPoint();
+           },
              backgroundColor: AppColors.instance.skyBlue,
              child: Icon(
                toggleAimPoint ? Icons.close : Icons.add,
@@ -278,8 +291,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
            bottom: 220.0,
            right: 10.0,
            child: FloatingActionButton(
-             onPressed: () => {
-               mapController.animatedZoomOut()
+             onPressed: () {
+               mapController.animatedZoomOut();
+               increaseRadiusIndex();
              },
              backgroundColor: AppColors.instance.skyBlue,
              child: Icon(
@@ -292,8 +306,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
            bottom: 290.0,
            right: 10.0,
            child: FloatingActionButton(
-             onPressed: () => {
-               mapController.animatedZoomIn()
+             onPressed: () {
+               mapController.animatedZoomIn();
+               decreaseRadiusIndex();
              },
              backgroundColor: AppColors.instance.skyBlue,
              child: Icon(

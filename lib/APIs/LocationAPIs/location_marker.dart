@@ -33,7 +33,7 @@ class MarkerModel{
     return jsonList.map((json) => MarkerModel.fromJson(json)).toList();
   }
 
-  static Future<List<MarkerModel>> fetchMarkers() async {
+  static Future<List<MarkerModel>> fetchMarkers(double maxRange, double minRange) async {
     final response = await http.get(Uri.parse("${ServerConf.url}API"));
 
     if (response.statusCode == 200) {
