@@ -1,24 +1,26 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:untitled/comment.dart';
+import 'package:mapdesign_flutter/community/comment.dart';
 import 'dart:convert';
 
 class BlogDetailScreen extends StatefulWidget {
   final String title;
-  final File? imageUrl;
+  //final File? imageUrl;
   final String content;
   final int likes;
   final int comments;
   final String author;
+  final int postId;
 
   BlogDetailScreen({
     required this.title,
-    required this.imageUrl,
+    //required this.imageUrl,
     required this.content,
     required this.likes,
     required this.comments,
     required this.author,
+    required this.postId,
   });
 
   @override
@@ -103,7 +105,56 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
       return false;
     }
   }
+  // 글 삭제 함수
+  Future<void> _deletePost(postId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse("https:// 주소 /$postId"),
+        headers: {'Content-Type': 'application/json'},
+      );
 
+      if (response.statusCode == 200) {
+        // 글 삭제 성공
+        print('글 삭제 성공');
+        Navigator.pop(context);
+      } else {
+        // 글 삭제 실패
+        print('글 삭제 실패 - ${response.statusCode}');
+        // 실패에 대한 추가 처리를 수행할 수 있습니다.
+      }
+    } catch (e) {
+      // 예외 처리
+      print('에러 발생: $e');
+    }
+  }
+
+  void _showDeleteConfirmationDialog(int postId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("삭제 확인"),
+          content: Text("정말로 삭제하시겠습니까?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+              child: Text("취소"),
+            ),
+            TextButton(
+              onPressed: () {
+                // 실제 삭제 로직 수행
+                _deletePost(postId);
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+              child: Text("삭제"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,9 +169,13 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                   initialValue: selectedMenu,
                   // Callback that sets the selected popup menu item.
                   onSelected: (SampleItem item) {
-                    setState(() {
-                      selectedMenu = item;
-                    });
+                    if (item == SampleItem.itemOne) {
+                      // 수정 선택 시의 로직 추가
+                      // 수정 화면으로 이동하거나 수정하는 기능을 구현하세요.
+                    } else if (item == SampleItem.itemTwo) {
+                      // 삭제 선택 시의 로직 추가
+                      _showDeleteConfirmationDialog(widget.postId);
+                    }
                   },
                   itemBuilder: (BuildContext context) =>
                   <PopupMenuEntry<SampleItem>>[
@@ -164,10 +219,11 @@ class _BlogDetailScreenState extends State<BlogDetailScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20.0),
                     child: Container(
-                      child: Image.file(
+                      child: /*Image.file(
                         widget.imageUrl!,
                         fit: BoxFit.cover,
-                      ),
+                      ),*/
+                      Text('456'),
                     ),
                   ),
                   SizedBox(height: 16.0),
