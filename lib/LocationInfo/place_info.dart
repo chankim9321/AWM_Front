@@ -5,6 +5,7 @@ import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/community/content.dart';
 import 'modifypage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'about_this_place.dart';
 
 class DetailScreen extends StatefulWidget {
   @override
@@ -120,12 +121,13 @@ class _DetailScreenState extends State<DetailScreen> {
                       children: [
                         IconButton(
                             onPressed: () => {
-                              // Navigator.push(
-                              //     context,
-                              //     MaterialPageRoute(
-                              //         builder: (context) => LocationWritePage(mapCategoryName: categoryList[index].keys.first) // 글 쓰는 페이지로 이동
-                              //     )
-                              // )
+                              if(index == 0){
+                                 Navigator.push(
+                                     context,
+                                     MaterialPageRoute(
+                                         builder: (context) => about_this_place())
+                                 )
+                              }
                             },
                             icon: buttonLabels[index].values.first
                         ),
