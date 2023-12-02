@@ -128,7 +128,7 @@ class _PostCreationScreenState extends State<PostCreationScreen> {
             ElevatedButton(
               onPressed: () {
                 String authToken =
-                    'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InFxd3dhczEyMzRAZ21haWwuY29tIiwicHJvdmlkZXIiOiJnb29nbGUiLCJuaWNrTmFtZSI6Iuy5tO2DgOumrOuCmCIsInJhbmtTY29yZSI6MCwiaWF0IjoxNzAxMzU4MDgzLCJleHAiOjE3MDE0MDEyODN9.WnNlxt8Q_q9CDumQyuBgd_fr-QLr_tmoE8AOl-I6C1s'; // Replace with your actual authentication token
+                    'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InFxd3dhczEyMzRAZ21haWwuY29tIiwicHJvdmlkZXIiOiJnb29nbGUiLCJuaWNrTmFtZSI6Iuy5tO2DgOumrOuCmCIsInJhbmtTY29yZSI6MCwiaWF0IjoxNzAxNDk4NTczLCJleHAiOjE3MDE1NDE3NzN9.TLs6wTWIA1dIdzHCt7k-6aMgIv2wHmAv5IXkc1lJzvA'; // Replace with your actual authentication token
                 createPost(titleController.text, contentController.text, imageFile?.path ?? '', authToken);
               },
               child: Text('등록하기'),
