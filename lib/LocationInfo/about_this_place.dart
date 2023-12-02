@@ -9,7 +9,8 @@ class about_this_place extends StatefulWidget {
 
 class _about_this_placeState extends State<about_this_place> {
   int currentPage = 0;
-  List<Map<String, String>> contentList = [];
+  List<Map<String, dynamic>> contentList = [];
+  String jwtToken = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InNldW5neWVvYnNpbkBnbWFpbC5jb20iLCJwcm92aWRlciI6Imdvb2dsZSIsIm5pY2tOYW1lIjoi7KCc65OcIiwicmFua1Njb3JlIjowLCJpYXQiOjE3MDE0OTkyNjgsImV4cCI6MTcwMTU0MjQ2OH0.CoD5PhKnYAmQ2dSb_P7rBGQzMKJwd1ivkYWfAahnXhM';
 
   @override
   void initState() {
@@ -30,11 +31,12 @@ class _about_this_placeState extends State<about_this_place> {
         final logs = data['content'] as List;
 
         for (var log in logs) {
+          final id = log['id']; // 'postId'를 'id'로 변경
           final nickName = log['nickName'];
           final content = log['content'];
 
           setState(() {
-            contentList.add({'nickName': nickName, 'content': content});
+            contentList.add({'id': id, 'nickName': nickName, 'content': content}); // 'postId'를 'id'로 변경
           });
         }
       } else {
@@ -46,6 +48,40 @@ class _about_this_placeState extends State<about_this_place> {
       print('API 호출 에러: $error');
     }
   }
+
+  Future<void> _deletePost(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('https://f42b-27-124-178-180.ngrok-free.app/user/logBoard/delete/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '$jwtToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          contentList.removeWhere((element) => element['id'] == id); // 'postId'를 'id'로 변경
+        });
+        ScaffoldMessenger.of(context).showSnackBar( // 삭제 성공 메시지 추가
+          SnackBar(content: Text('삭제가 완료되었습니다.')),
+        );
+      } else {
+        if (response.statusCode == 401) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('작성자가 아닙니다.')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('삭제 실패: ${response.statusCode}')),
+          );
+        }
+      }
+    } catch (error) {
+      print('삭제 에러: $error');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,20 +104,35 @@ class _about_this_placeState extends State<about_this_place> {
               Padding(
                 padding: const EdgeInsets.only(left: 10.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${contentList[index]['nickName']}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                        fontSize: 20.0,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${contentList[index]['nickName']}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                            fontSize: 20.0,
+                          ),
+                        ),
+                      ],
                     ),
-                    Icon(Icons.account_circle, color: Colors.blue), // 닉네임 옆 아이콘
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        if (contentList[index]['id'] != null) { // 'postId'를 'id'로 변경
+                          _deletePost(contentList[index]['id']); // 'postId'를 'id'로 변경
+                        } else {
+                          print('id is null');
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
-              SizedBox(height: 5), // 닉네임과 콘텐트 사이의 간격
+              SizedBox(height: 5),
               Container(
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
@@ -93,7 +144,7 @@ class _about_this_placeState extends State<about_this_place> {
                   child: Text('${contentList[index]['content']}'),
                 ),
               ),
-              SizedBox(height: 30), // Add some spacing
+              SizedBox(height: 30),
             ],
           );
         },
