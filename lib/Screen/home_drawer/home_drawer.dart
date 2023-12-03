@@ -14,6 +14,20 @@ class HomeDrawer extends StatefulWidget {
 
 class _HomeDrawerState extends State<HomeDrawer> {
 
+  String? loginBanner;
+  void checkLogined(){
+    if (SecureStorage().readSecureData('token') != null){
+      loginBanner = "로그아웃";
+    }else{
+      loginBanner = "로그인";
+    }
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkLogined();
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -94,7 +108,11 @@ class _HomeDrawerState extends State<HomeDrawer> {
                                 Icons.logout,
                                 color: Colors.white,
                               ),
-                              title: Text("로그아웃", style: TextStyle(color: Colors.white),),
+                              title: Text(loginBanner!,
+                                style: TextStyle(
+                                  color: Colors.white
+                                ),
+                              ),
                             ),
                           ],
                         )
