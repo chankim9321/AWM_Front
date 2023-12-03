@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'package:mapdesign_flutter/LocationInfo/place_component/sns_ui_heart_icon_screen.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/community/content.dart';
@@ -7,20 +8,14 @@ import 'modifypage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class DetailScreen extends StatefulWidget {
+  const DetailScreen({super.key, required this.locationId, required this.imagePaths});
+  final List<Uint8List> imagePaths;
+  final int locationId;
   @override
   _DetailScreenState createState() => _DetailScreenState();
 }
 
 class _DetailScreenState extends State<DetailScreen> {
-  final List<String> imagePaths = [
-    'asset/img/tower_image.jpeg',
-    'asset/img/test_1.webp',
-    'asset/img/test_2.webp',
-    'asset/img/test_3.jpeg',
-    'asset/img/test_4.jpg',
-    'asset/img/test_5.jpg',
-    'asset/img/test_6.jpg',
-  ];
   final List<Map<String, Icon>> buttonLabels = [
     {"About this place" : Icon(Icons.feed_outlined)},
     {"Commit Log" : Icon(Icons.checklist_rtl)},
@@ -65,7 +60,7 @@ class _DetailScreenState extends State<DetailScreen> {
           children: <Widget>[
             SizedBox(height: screenHeight * 0.05), // Adjust top space
             CarouselSlider.builder(
-              itemCount: imagePaths.length,
+              itemCount: widget.imagePaths.length,
               options: CarouselOptions(
                 height: screenHeight * 0.35, // Adjust the image height
                 viewportFraction: 0.8,
@@ -73,13 +68,13 @@ class _DetailScreenState extends State<DetailScreen> {
                 autoPlay: true,
               ),
               itemBuilder: (context, index, realIndex) {
-                final imagePath = imagePaths[index];
+                final imagePath = widget.imagePaths[index];
                 return Container(
                   width: screenWidth * 0.85, // Adjust the image width
                   height: 200.0,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20.0),
-                    child: Image.asset(
+                    child: Image.memory(
                       imagePath,
                       fit: BoxFit.cover, // Use fitWidth to ensure the image is not cropped
                     ),

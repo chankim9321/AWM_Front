@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
+import 'package:mapdesign_flutter/LoginPage/login_module.dart';
+import 'package:mapdesign_flutter/LoginPage/login_page.dart';
 import 'dart:math';
 
 import 'package:mapdesign_flutter/Screen/home_screen.dart';
@@ -80,8 +83,12 @@ class _HomeDrawerState extends State<HomeDrawer> {
                             ),
                             ListTile(
                               onTap: () {
-
-
+                                  SecureStorage().deleteSecureData("token");
+                                  Navigator.pushAndRemoveUntil(
+                                      context, MaterialPageRoute(
+                                      builder: (context) => LoginModule()
+                                    ), (Route<dynamic> route) => false
+                                  );
                               },
                               leading: Icon(
                                 Icons.logout,

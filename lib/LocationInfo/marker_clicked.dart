@@ -1,30 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:mapdesign_flutter/APIs/LocationAPIs/location_clicked.dart';
+import 'package:mapdesign_flutter/APIs/LocationAPIs/location_detailed.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'place_info.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
-class LocalScreen extends StatefulWidget {
-  const LocalScreen({super.key});
+class MarkerClicked extends StatefulWidget {
+  const MarkerClicked({super.key, required this.latitude, required this.longitude, required this.category});
+  final double longitude;
+  final double latitude;
+  final String category;
   @override
-  _LocalScreenState createState() => _LocalScreenState();
+  _MarkerClickedState createState() => _MarkerClickedState();
 }
 
-class _LocalScreenState extends State<LocalScreen> {
-  List<String> imagePaths = [
-    'asset/img/tower_image.jpeg',
-    'asset/img/test_1.webp',
-    'asset/img/test_2.webp',
-    'asset/img/test_3.jpeg',
-    'asset/img/test_4.jpg',
-    'asset/img/test_5.jpg',
-    'asset/img/test_6.jpg',
-  ];
+class _MarkerClickedState extends State<MarkerClicked> {
+  // List<String> imagePaths = [
+  //   'asset/img/tower_image.jpeg',
+  //   'asset/img/test_1.webp',
+  //   'asset/img/test_2.webp',
+  //   'asset/img/test_3.jpeg',
+  //   'asset/img/test_4.jpg',
+  //   'asset/img/test_5.jpg',
+  //   'asset/img/test_6.jpg',
+  // ];
+  List<Uint8List> imagePaths = [];
+  String title = '';
   String mainImagePath = 'asset/img/tower_image.jpeg';
   int currentPage = 0;
   final double imageWidth = 60.0; // 이미지 너비
   final double imageHeight = 60.0; // 이미지 높이
   final double padding = 8.0; // 패딩
 
-
+  void _loadImages() async {
+    var locationData = await LocationClicked.clickLocation(widget.latitude, widget.longitude, widget.category);
+    setState(() {
+      title = locationData['title'];
+      imagePaths = locationData['images'];
+    });
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loadImages();
+  }
   @override
   Widget build(BuildContext context) {
     // 디바이스 너비 계산
@@ -65,7 +86,7 @@ class _LocalScreenState extends State<LocalScreen> {
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(imagePaths[index]),
+                    image: MemoryImage(imagePaths[index]),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -85,21 +106,10 @@ class _LocalScreenState extends State<LocalScreen> {
                         Container(
                           margin: EdgeInsets.only(left: 20.0),
                           child: Text(
-                            'Test View',
+                            title,
                             style: TextStyle(
                               fontSize: 32.0,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(left: 20.0),
-                          child: Text(
-                            'this is test view.',
-                            style: TextStyle(
-                              fontSize: 17.0,
-                              fontWeight: FontWeight.normal,
                               color: Colors.white,
                             ),
                           ),
@@ -113,7 +123,7 @@ class _LocalScreenState extends State<LocalScreen> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.asset(
+                                  child: Image.memory(
                                     imagePaths[(i + currentPage) % imagePaths.length],
                                     width: imageWidth,
                                     height: imageHeight,
@@ -156,12 +166,17 @@ class _LocalScreenState extends State<LocalScreen> {
                                   minimumSize: Size(50.0, 60.0),
                                   shape: StadiumBorder(),
                                 ),
-                                onPressed: () => {
+                                onPressed: () async {
+                                  int locationId = await LocationDetailed.locationDetailedClick(
+                                      widget.latitude,
+                                      widget.longitude,
+                                      widget.category,
+                                  );
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => DetailScreen())
-                                    )
+                                      builder: (context) => DetailScreen(locationId: locationId, imagePaths: imagePaths))
+                                    );
                                 },
                                 icon: Icon(
                                   Icons.arrow_right_alt,
@@ -191,13 +206,12 @@ class _LocalScreenState extends State<LocalScreen> {
       ),
     );
   }
-
-  void _openDetailScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailScreen(),
-      ),
-    );
-  }
+  // void _openDetailScreen() {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => DetailScreen(),
+  //     ),
+  //   );
+  // }
 }

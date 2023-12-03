@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/LoginPage/register_page.dart';
 import 'package:mapdesign_flutter/Screen/home_screen.dart';
@@ -18,7 +20,7 @@ class LoginPage extends StatefulWidget {
 }
 class _LoginPageState extends State<LoginPage> {
   final idController = TextEditingController();
-  final storage = FlutterSecureStorage(); // flutter login info storage
+  final storage = SecureStorage();
   final passwordController = TextEditingController();
 
   void signUserIn() async {
@@ -32,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     try{
       // login through http request
       final response = await http.post(
-        Uri.parse('http://172.20.10.6:8080/login'), // api login urㅣ
+        Uri.parse('http://${ServerConf.url}/login'), // api login urㅣ
         headers: <String, String>{
           'Content-Type': 'application/json',
         },
@@ -43,11 +45,10 @@ class _LoginPageState extends State<LoginPage> {
       );
       // if response is OK
       if(response.statusCode == 200){
-        print("fuckkkkk");
+
         final String accessToken = response.headers['authorization']!;
-        print("fuckkkkk");
-        await storage.write(key: 'AWMaccessToken', value: accessToken);
-        print("fuckkkkk------------");
+
+        storage.writeSecureData("token", accessToken);
 
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
