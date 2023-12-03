@@ -9,7 +9,11 @@ import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
 import 'package:mapdesign_flutter/community/chat.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:typed_data';
-import 'package:mapdesign_flutter/community/sample.dart';
+import 'package:mapdesign_flutter/community/detail.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
+
+String imageFilePath = 'asset/img/tower_image.jpeg';
+String baseUrl = '${ServerConf.url}';
 
 class Post {
   String boardTitle;
@@ -83,7 +87,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
   }
 
   Future<List<Post>> getTodo(int locationId, int page) async {
-    String original = 'https://f42b-27-124-178-180.ngrok-free.app';
+    String original = 'http://${baseUrl}';
     String sub = "/board/paging/${locationId}?page=$page";
     String url = original + sub;
     http.Client _client = http.Client();
@@ -133,7 +137,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
         },
         child: Row(
           children: [
-            ClipRRect(
+            /*ClipRRect(
               borderRadius: BorderRadius.circular(20.0),
               child: image != null
                   ? Image.memory(
@@ -141,6 +145,31 @@ class _BlogListScreenState extends State<BlogListScreen> {
                 width: 100,
                 height: 100,
               )
+                  : Placeholder(
+                // Placeholder for cases where image is null or invalid
+                fallbackHeight: 100,
+                fallbackWidth: 100,
+              ),
+            ),*/
+
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20.0),
+
+              child: image != null
+                  ? Image.memory(
+                image,
+                width: 100,
+                height: 100,
+              )
+              // /*
+                  : imageFilePath != null
+                  ? Image.asset(
+                imageFilePath,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover, // Adjust the fit based on your requirement
+              )
+              // */ 실행안해봄
                   : Placeholder(
                 // Placeholder for cases where image is null or invalid
                 fallbackHeight: 100,

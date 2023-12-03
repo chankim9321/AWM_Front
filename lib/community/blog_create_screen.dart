@@ -5,8 +5,10 @@ import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+String baseUrl = '118.67.135.48:8080';
+String Token = '';
 Future<void> createPost(String title, String content, String imagePath, String authToken) async {
-  final Uri endpoint = Uri.parse('https://f42b-27-124-178-180.ngrok-free.app/user/board/save/1'); // Replace with your actual backend endpoint
+  final Uri endpoint = Uri.parse('https://${baseUrl}/user/board/save/1'); // Replace with your actual backend endpoint
 
   // Read JSON file containing title and content
   final Map<String, dynamic> postData = {
@@ -128,7 +130,7 @@ class _PostCreationScreenState extends State<PostCreationScreen> {
             ElevatedButton(
               onPressed: () {
                 String authToken =
-                    'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InFxd3dhczEyMzRAZ21haWwuY29tIiwicHJvdmlkZXIiOiJnb29nbGUiLCJuaWNrTmFtZSI6Iuy5tO2DgOumrOuCmCIsInJhbmtTY29yZSI6MCwiaWF0IjoxNzAxNDk4NTczLCJleHAiOjE3MDE1NDE3NzN9.TLs6wTWIA1dIdzHCt7k-6aMgIv2wHmAv5IXkc1lJzvA'; // Replace with your actual authentication token
+                    '${Token}'; // Replace with your actual authentication token
                 createPost(titleController.text, contentController.text, imageFile?.path ?? '', authToken);
               },
               child: Text('등록하기'),
