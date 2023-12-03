@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:mapdesign_flutter/community/blog_create_screen.dart';
-import 'package:mapdesign_flutter/community/search_screen.dart';
-import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:mapdesign_flutter/community/blog_create_screen.dart';
+import 'package:mapdesign_flutter/community/search_screen.dart';
+import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
 import 'package:mapdesign_flutter/community/chat.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/community/sample.dart';
-class Post{
+
+class Post {
   String boardTitle;
   String boardContent;
-  http.ByteStream? image;
+  Uint8List? image;
   int likeCount;
   int commentCount;
   int postId;
@@ -23,9 +24,7 @@ class Post{
   Post.fromJson(Map json)
       : boardTitle = json["boardTitle"],
         boardContent = json["boardContent"],
-        image = (json["image"] != null)
-            ? http.ByteStream.fromBytes(base64.decode(json["image"]))
-            : http.ByteStream(Stream.empty()),
+        image = (json["image"] != null) ? base64.decode(json["image"]) : null,
         likeCount = json["likeCount"],
         commentCount = json["commentCount"],
         postId = json["postId"];
@@ -37,7 +36,8 @@ class BlogListScreen extends StatefulWidget {
 }
 
 class _BlogListScreenState extends State<BlogListScreen> {
-  StreamController _streamController = StreamController.broadcast();
+  StreamController<List<Post>> _streamController =
+  StreamController<List<Post>>.broadcast();
   int currentPage = 0;
   int locationId = 1;
   bool isLoading = false;
@@ -47,21 +47,33 @@ class _BlogListScreenState extends State<BlogListScreen> {
   void initState() {
     super.initState();
     fetchData();
-    _scrollController.addListener(_scrollListener); // 스크롤 리스너 추가
+    _refreshController = RefreshController(initialRefresh: false);
+    _scrollController.addListener(_scrollListener);
   }
 
   Future<void> _refresh() async {
-    currentPage++;
-    await fetchData();
+    try {
+      List<Post> newTodos = await getTodo(locationId, currentPage);
+      print('currentPage');
+      print(currentPage);
+      if (newTodos.isNotEmpty) {
+        dataList.insertAll(0, newTodos);
+        _streamController.add(dataList);
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   Future<void> fetchData() async {
     try {
       if (!isLoading) {
         isLoading = true;
-        List<Post> newTodos = await getTodo(locationId, currentPage);
-        dataList.addAll(newTodos);
-        _streamController.add(newTodos);
+        List<Post> newTodos = await getTodo(locationId, currentPage+1);
+        if (newTodos.isNotEmpty) {
+          dataList.addAll(newTodos);
+          _streamController.add(dataList);
+        }
       }
     } catch (e) {
       print('Error: $e');
@@ -75,6 +87,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
     String sub = "/board/paging/${locationId}?page=$page";
     String url = original + sub;
     http.Client _client = http.Client();
+    print(url);
     List<Post> list = [];
     try {
       final response = await _client.get(Uri.parse(url));
@@ -98,11 +111,11 @@ class _BlogListScreenState extends State<BlogListScreen> {
     return list;
   }
 
-  Widget _buildListTile (AsyncSnapshot snapshot, int index) {
+  Widget _buildListTile(AsyncSnapshot snapshot, int index) {
     int id = snapshot.data[index].postId;
     String title = snapshot.data[index].boardTitle;
     String content = snapshot.data[index].boardContent;
-    http.ByteStream image = snapshot.data[index].image;
+    Uint8List? image = snapshot.data[index].image;
     int likes = snapshot.data[index].likeCount;
     int comment = snapshot.data[index].commentCount;
 
@@ -112,7 +125,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PostDetailLoader(//)BlogDetailScreen(
+              builder: (context) => PostDetailLoader(
                 postId: id,
               ),
             ),
@@ -122,23 +135,16 @@ class _BlogListScreenState extends State<BlogListScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20.0),
-              child: FutureBuilder<Uint8List>(
-                future: snapshot.data[index].image.toBytes(),
-                builder: (context, bytesSnapshot) {
-                  if (bytesSnapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  } else if (bytesSnapshot.hasError) {
-                    return Text('Error loading image');
-                  } else if (!bytesSnapshot.hasData) {
-                    return Text('No image data');
-                  } else {
-                    return Image.memory(
-                      bytesSnapshot.data!,
-                      width: 100,
-                      height: 100,
-                    );
-                  }
-                },
+              child: image != null
+                  ? Image.memory(
+                image,
+                width: 100,
+                height: 100,
+              )
+                  : Placeholder(
+                // Placeholder for cases where image is null or invalid
+                fallbackHeight: 100,
+                fallbackWidth: 100,
               ),
             ),
             Expanded(
@@ -192,6 +198,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _streamController.close();
     super.dispose();
@@ -200,13 +207,12 @@ class _BlogListScreenState extends State<BlogListScreen> {
   void _scrollListener() {
     if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
-      currentPage++;  // 페이지 증가
-      fetchData();    // 데이터 재요청
+      currentPage++;
+      fetchData();
     }
   }
 
-  RefreshController _refreshController =
-  RefreshController(initialRefresh: false);
+  RefreshController _refreshController = RefreshController(initialRefresh: false);
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +238,6 @@ class _BlogListScreenState extends State<BlogListScreen> {
           children: <Widget>[
             Flexible(
               child: SmartRefresher(
-                //enablePullDown: true,
                 enablePullUp: true,
                 controller: _refreshController,
                 onLoading: _refresh,

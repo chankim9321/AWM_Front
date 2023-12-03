@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:async';
 String authToken =
-    'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InFxd3dhczEyMzRAZ21haWwuY29tIiwicHJvdmlkZXIiOiJnb29nbGUiLCJuaWNrTmFtZSI6Iuy5tO2DgOumrOuCmCIsInJhbmtTY29yZSI6MCwiaWF0IjoxNzAxNDk4NTczLCJleHAiOjE3MDE1NDE3NzN9.TLs6wTWIA1dIdzHCt7k-6aMgIv2wHmAv5IXkc1lJzvA'; // Replace with your actual authentication token
+    'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InFxd3dhczEyMzRAZ21haWwuY29tIiwicHJvdmlkZXIiOiJnb29nbGUiLCJuaWNrTmFtZSI6Iuy5tO2DgOumrOuCmCIsInJhbmtTY29yZSI6MCwiaWF0IjoxNzAxNTE4MjYwLCJleHAiOjE3MDE1NjE0NjB9.srlFtB7fY9qsrxP40eeS2WXYq_H_c62lwkpxJESruaU'; // Replace with your actual authentication token
 
 class BlogDetailScreen extends StatefulWidget {
   final String title;

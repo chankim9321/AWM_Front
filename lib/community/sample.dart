@@ -10,6 +10,9 @@ import 'package:mapdesign_flutter/community/chat.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/community/comment.dart';
+
+String baseUrl = 'https://7c1d-112-220-77-99.ngrok-free.app';
+
 /*class Post{
   String boardTitle;
   String boardContent;
@@ -396,29 +399,44 @@ class PostDetailPage extends StatelessWidget {
 
   void onCommentAdded(CommentWidget newComment) async {
     // Assuming you have a method in your backend API to handle comment creation
-    bool success = await sendCommentToBackend(newComment);
+    bool success = await sendCommentToBackend(newComment ,postDetail.boardDto.postId);
 
-    /*if (success) {
-      setState(() {
+    if (success) {
+      /*setState(() {
         chatCount++;
         mainComments.add(newComment);
-      });
+      });*/
     } else {
       // Handle the case where sending the comment to the backend fails
       // You may want to show an error message to the user
       print('Failed to send comment to the backend');
-    }*/
+    }
   }
-  Future<bool> sendCommentToBackend(CommentWidget newComment) async {
+  Future<bool> sendCommentToBackend(CommentWidget newComment, int postid) async {
     // Replace 'YOUR_BACKEND_API_URL' with the actual URL of your backend API
     try {
       final response = await http.post(
-        Uri.parse('f42b-27-124-178-180.ngrok-free.app/comments'), // Replace with the actual URL
-        body: {
-          'author': newComment.author,
-          'content': newComment.content,
-        },
+          Uri.parse('https://f42b-27-124-178-180.ngrok-free.app/user/comment/save/${postid}'), // Replace with the actual URL
+          body: jsonEncode({
+            'commentWriter': newComment.author,
+            'commentContent': newComment.content,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization' : '$authToken',
+          }
       );
+
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        // 글 삭제 성공
+        print('댓글 성공');
+        //Navigator.pop(context);
+      } else {
+        // 글 삭제 실패
+        print('댓글 실패 - ${response.statusCode}');
+        // 실패에 대한 추가 처리를 수행할 수 있습니다.
+      }
 
       return response.statusCode == 200;
     } catch (error) {
