@@ -1,101 +1,80 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:convert';
 
-class BlogPost {
-  final String title;
-  final String content;
-  final String author;
-  final int comments;
-  final int likes;
-  final File? imageUrl; // Nullable imageUrl to store the image URL
-  final int postID;
+String baseUrl = '118.67.135.48:8080';
+String Token = '';
+Future<void> createPost(String title, String content, String imagePath, String authToken) async {
+  final Uri endpoint = Uri.parse('https://${baseUrl}/user/board/save/1'); // Replace with your actual backend endpoint
 
-  BlogPost({
-    required this.title,
-    required this.content,
-    required this.author,
-    required this.comments,
-    required this.likes,
-    required this.postID,
-    required this.imageUrl
-
-  });
-  // Add a constructor for JSON serialization
-  BlogPost.fromJson(Map<String, dynamic> json)
-      : title = json['title'],
-        content = json['content'],
-        author = json['author'],
-        comments = json['comments'],
-        likes = json['likes'],
-        postID = json['postID'],
-        imageUrl = json['imageUrl'] != null ? File(json['imageUrl']) : null;
-
-  // Add a method to convert the object to JSON
-  Map<String, dynamic> toJson() => {
-    'title': title,
-    'content': content,
-    'author': author,
-    'comments': comments,
-    'likes': likes,
-    'postID': postID,
-    'imageUrl': imageUrl?.path, // Convert File to path string
+  // Read JSON file containing title and content
+  final Map<String, dynamic> postData = {
+    'boardTitle': title,
+    'boardContent': content,
+    'boardWriter': 'Lee',
   };
-}
 
-class BlogCreateScreen extends StatefulWidget {
-  @override
-  _BlogCreateScreenState createState() => _BlogCreateScreenState();
-}
+  // Create a multipart request
+  final http.MultipartRequest request = http.MultipartRequest('POST', endpoint);
+  request.headers['Authorization'] = '$authToken';
+  // Add JSON file part
+  request.files.add(http.MultipartFile.fromString(
+    'dto', // Assuming your backend expects 'dto' as the key for the JSON file
+    jsonEncode(postData),
+    contentType: MediaType('application', 'json'),
+  ));
 
-class _BlogCreateScreenState extends State<BlogCreateScreen> {
+  // Add image file part
+  if (imagePath.isNotEmpty) {
+    final File imageFile = File(imagePath);
+    request.files.add(http.MultipartFile.fromBytes(
+      'file', // Assuming your backend expects 'file' as the key for the image file
+      await imageFile.readAsBytes(),
+      filename: 'file',
+      contentType: MediaType('image', 'jpeg'), // Adjust the content type based on your file type
+    ));
+  }
 
-  Future<void> sendNewPostToBackendWithLocation(
-      double latitude, double longitude, BlogPost newPost) async {
-    final response = await http.post(
-      Uri.parse('YOUR_BACKEND_URL/posts'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'latitude': latitude,
-        'longitude': longitude,
-        ...newPost.toJson(),
-      }),
-    );
-
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create a new blog post');
+  // Send the request
+  try {
+    final http.Response response = await http.Response.fromStream(await request.send());
+    if (response.statusCode == 200) {
+      print('Post created successfully');
+    } else {
+      print('Failed to create post: ${response.statusCode}');
     }
+  } catch (error) {
+    print('Error creating post: $error');
   }
+}
 
-  TextEditingController titleController = TextEditingController();
-  TextEditingController contentController = TextEditingController();
-  File? imageUrl; // Store the selected image URL
+class PostCreationScreen extends StatefulWidget {
+  @override
+  _PostCreationScreenState createState() => _PostCreationScreenState();
+}
 
-  Future pickImage() async {
-    final pickedFile =
-    await ImagePicker().getImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        imageUrl = File(pickedFile.path); // Store the selected image path
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
+class _PostCreationScreenState extends State<PostCreationScreen> {
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController contentController = TextEditingController();
+  File? imageFile;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('새 글 등록'),
+        title: Text('글쓰기'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            /*TextField(
+              controller: titleController,
+              decoration: InputDecoration(labelText: 'Title'),
+            ),*/
             TextField(
               controller: titleController,
               decoration: InputDecoration(
@@ -107,24 +86,35 @@ class _BlogCreateScreenState extends State<BlogCreateScreen> {
               ),
               keyboardType: TextInputType.multiline,
             ),
-            SizedBox(height: 10),
-            if (imageUrl != null)
+
+            SizedBox(height: 16),
+            if (imageFile != null)
               Image.file(
-                imageUrl!,
+                imageFile!,
                 width: 200,
                 height: 200,
               ),
+            /*ElevatedButton(
+              onPressed: () {
+                pickImage();
+              },
+              child: Text('Pick Image'),
+            ),*/
             ElevatedButton(
               onPressed: pickImage,
               child: Text('이미지 선택'),
               style: ElevatedButton.styleFrom(
-                primary: Colors.transparent, // 버튼 색을 투명하게 설정
+                //primary: Colors.transparent, // 버튼 색을 투명하게 설정
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 16),
+            /*TextField(
+              controller: contentController,
+              decoration: InputDecoration(labelText: 'Content'),
+            ),*/
             TextField(
               controller: contentController,
               decoration: InputDecoration(
@@ -136,27 +126,12 @@ class _BlogCreateScreenState extends State<BlogCreateScreen> {
               keyboardType: TextInputType.multiline,
               maxLines: 10,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () async{
-                String title = titleController.text;
-                String content = contentController.text;
-
-                // Create a new BlogPost with the image URL
-                BlogPost newPost = BlogPost(
-                  title: title,
-                  content: content,
-                  author: 'Author',
-                  imageUrl: imageUrl,
-                  likes: 1,
-                  comments: 1,
-                  postID: 1,
-                );
-                double userLatitude = 37.7749;
-                double userLongitude = -122.4194;
-                await sendNewPostToBackendWithLocation(userLatitude, userLongitude, newPost);
-
-                Navigator.pop(context, newPost);
+              onPressed: () {
+                String authToken =
+                    '${Token}'; // Replace with your actual authentication token
+                createPost(titleController.text, contentController.text, imageFile?.path ?? '', authToken);
               },
               child: Text('등록하기'),
               style: ElevatedButton.styleFrom(
@@ -169,5 +144,16 @@ class _BlogCreateScreenState extends State<BlogCreateScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);
+      });
+    }
   }
 }

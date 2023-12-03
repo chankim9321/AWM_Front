@@ -8,6 +8,8 @@ import 'modifypage.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'about_this_place.dart';
 
+import 'package:mapdesign_flutter/community/blog_list_screen.dart';
+import 'package:mapdesign_flutter/community/chat.dart';
 class DetailScreen extends StatefulWidget {
   const DetailScreen({super.key, required this.locationId, required this.imagePaths});
   final List<Uint8List> imagePaths;
@@ -19,7 +21,7 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   final List<Map<String, Icon>> buttonLabels = [
     {"About this place" : Icon(Icons.feed_outlined)},
-    {"Commit Log" : Icon(Icons.checklist_rtl)},
+    {"Community" : Icon(Icons.checklist_rtl)},
     {"Chat" : Icon(Icons.chat)},
     {"Contributor" : Icon(Icons.military_tech)},
   ];
@@ -116,6 +118,10 @@ class _DetailScreenState extends State<DetailScreen> {
                       children: [
                         IconButton(
                             onPressed: () => {
+                              setState(() {
+                                _selectedIndex = index;
+                              }),
+                              print(_selectedIndex),
                               if(index == 0){
                                  Navigator.push(
                                      context,
@@ -123,6 +129,32 @@ class _DetailScreenState extends State<DetailScreen> {
                                          builder: (context) => about_this_place())
                                  )
                               }
+
+                              else if (_selectedIndex == 1) {
+                                // Navigate to the CommitLogScreen
+                                Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                builder: (context) => BlogListScreen(),
+                                ),
+                                )
+                              }
+                              else if (_selectedIndex == 2) {
+                                // Navigate to the CommitLogScreen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(),
+                                  ),
+                                )
+                              }
+                              // Navigator.push(
+                              //     context,
+                              //     MaterialPageRoute(
+                              //         builder: (context) => LocationWritePage(mapCategoryName: categoryList[index].keys.first) // 글 쓰는 페이지로 이동
+                              //     )
+                              // )
+
                             },
                             icon: buttonLabels[index].values.first
                         ),

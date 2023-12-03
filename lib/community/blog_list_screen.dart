@@ -1,9 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 import 'package:mapdesign_flutter/community/blog_create_screen.dart';
 import 'package:mapdesign_flutter/community/search_screen.dart';
 import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
-import 'dart:convert';
+import 'package:mapdesign_flutter/community/chat.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'dart:typed_data';
+import 'package:mapdesign_flutter/community/detail.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
+
+String imageFilePath = 'asset/img/tower_image.jpeg';
+String baseUrl = '${ServerConf.url}';
+
+class Post {
+  String boardTitle;
+  String boardContent;
+  Uint8List? image;
+  int likeCount;
+  int commentCount;
+  int postId;
+
+  Post(this.boardTitle, this.boardContent, this.image, this.likeCount, this.commentCount, this.postId);
+
+  Post.fromJson(Map json)
+      : boardTitle = json["boardTitle"],
+        boardContent = json["boardContent"],
+        image = (json["image"] != null) ? base64.decode(json["image"]) : null,
+        likeCount = json["likeCount"],
+        commentCount = json["commentCount"],
+        postId = json["postId"];
+}
 
 class BlogListScreen extends StatefulWidget {
   @override
@@ -11,150 +40,260 @@ class BlogListScreen extends StatefulWidget {
 }
 
 class _BlogListScreenState extends State<BlogListScreen> {
-  List<BlogPost> blogPosts = [];
-  Future<void> fetchBlogPosts(double latitude, double longitude) async {
-    final response = await http.get(
-      Uri.parse('YOUR_BACKEND_URL'),
-    );
-
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      List<BlogPost> posts = data.map((json) => BlogPost(
-          title: json['title'],
-          content: json['content'],
-          imageUrl: json['imageUrl'],
-          comments: json['comments'],
-          likes: json['likes'],
-          author: json['author'],
-          postID: json['postID']
-      )).toList();
-      setState(() {
-        blogPosts = posts;
-      });
-    } else {
-      throw Exception('Failed to load blog posts');
-    }
-  }
-
-
-
+  StreamController<List<Post>> _streamController =
+  StreamController<List<Post>>.broadcast();
+  int currentPage = 0;
+  int locationId = 1;
+  bool isLoading = false;
+  List<Post> dataList = [];
 
   @override
   void initState() {
     super.initState();
-
-    // Get user's location (example values, replace with actual implementation)
-    double userLatitude = 37.7749;
-    double userLongitude = -122.4194;
-
-    fetchBlogPosts(userLatitude, userLongitude);
+    fetchData();
+    _refreshController = RefreshController(initialRefresh: false);
+    _scrollController.addListener(_scrollListener);
   }
+
+  Future<void> _refresh() async {
+    try {
+      List<Post> newTodos = await getTodo(locationId, currentPage);
+      print('currentPage');
+      print(currentPage);
+      if (newTodos.isNotEmpty) {
+        dataList.insertAll(0, newTodos);
+        _streamController.add(dataList);
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> fetchData() async {
+    try {
+      if (!isLoading) {
+        isLoading = true;
+        List<Post> newTodos = await getTodo(locationId, currentPage+1);
+        if (newTodos.isNotEmpty) {
+          dataList.addAll(newTodos);
+          _streamController.add(dataList);
+        }
+      }
+    } catch (e) {
+      print('Error: $e');
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  Future<List<Post>> getTodo(int locationId, int page) async {
+    String original = 'http://${baseUrl}';
+    String sub = "/board/paging/${locationId}?page=$page";
+    String url = original + sub;
+    http.Client _client = http.Client();
+    print(url);
+    List<Post> list = [];
+    try {
+      final response = await _client.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final todos = json.decode(utf8.decode(response.bodyBytes))["content"];
+        todos.forEach((todo) {
+          try {
+            list.add(Post.fromJson(todo));
+          } catch (e) {
+            print('Error adding todo: $e');
+          }
+        });
+      } else {
+        throw Exception("Failed to load todos");
+      }
+    } catch (e) {
+      throw Exception("Error while fetching todos");
+    } finally {
+      _client.close();
+    }
+    return list;
+  }
+
+  Widget _buildListTile(AsyncSnapshot snapshot, int index) {
+    int id = snapshot.data[index].postId;
+    String title = snapshot.data[index].boardTitle;
+    String content = snapshot.data[index].boardContent;
+    Uint8List? image = snapshot.data[index].image;
+    int likes = snapshot.data[index].likeCount;
+    int comment = snapshot.data[index].commentCount;
+
+    return Card(
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PostDetailLoader(
+                postId: id,
+              ),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            /*ClipRRect(
+              borderRadius: BorderRadius.circular(20.0),
+              child: image != null
+                  ? Image.memory(
+                image,
+                width: 100,
+                height: 100,
+              )
+                  : Placeholder(
+                // Placeholder for cases where image is null or invalid
+                fallbackHeight: 100,
+                fallbackWidth: 100,
+              ),
+            ),*/
+
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20.0),
+
+              child: image != null
+                  ? Image.memory(
+                image,
+                width: 100,
+                height: 100,
+              )
+              // /*
+                  : imageFilePath != null
+                  ? Image.asset(
+                imageFilePath,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover, // Adjust the fit based on your requirement
+              )
+              // */ 실행안해봄
+                  : Placeholder(
+                // Placeholder for cases where image is null or invalid
+                fallbackHeight: 100,
+                fallbackWidth: 100,
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "$title",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "$content",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(Icons.favorite_outline),
+                        SizedBox(width: 4),
+                        Text('$likes'),
+                        SizedBox(width: 10),
+                        Icon(Icons.chat_bubble_outline),
+                        SizedBox(width: 4),
+                        Text('$comment'),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    _streamController.close();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      currentPage++;
+      fetchData();
+    }
+  }
+
+  RefreshController _refreshController = RefreshController(initialRefresh: false);
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           title: Text('장소이름'),
+          backgroundColor: Colors.blue,
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                setState(() {
+                  currentPage = 0;
+                  dataList = [];
+                  fetchData();
+                });
+              },
+            ),
+          ],
         ),
-        body: ListView.builder(
-          itemCount: blogPosts.length,
-          itemBuilder: (context, index) {
-            return Card(
-              child: InkWell(
-                onTap: () {
-                  // Navigate to the BlogDetailScreen when a blog post is tapped
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlogDetailScreen(
-                        title: blogPosts[index].title,
-                        imageUrl: blogPosts[index].imageUrl!,
-                        content: blogPosts[index].content,
-                        comments: 1,
-                        // Provide a value for comments
-                        likes: 2,
-                        // Provide a value for likes
-                        author: '사용자 닉네임',
-                      ),
-                    ),
-                  );
-                },
-                child: Row(
-                  children: [
-                    // Left side - Image
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20.0),
-                      // 모서리를 둥글게 만듭니다
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        child:
-                        Image.file(
-                          blogPosts[index].imageUrl!,
-                          width: 200,
-                          height: 200,
-                        ),
-
-                        /*Image.network(
-                          blogPosts[index].imageUrl!,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),*/
-                      ),
-                    ),
-
-                    // Right side - Content
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    blogPosts[index].title,
-                                    style:
-                                    TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    blogPosts[index].content,
-                                    overflow: TextOverflow.ellipsis, // 글자 생략
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Icon(Icons.favorite_outline),
-                                SizedBox(width: 4),
-                                Text('10'),
-                                SizedBox(width: 10),
-                                Icon(Icons.chat_bubble_outline),
-                                SizedBox(width: 4),
-                                Text('10'),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            // 로딩 상태에 따라 CircularProgressIndicator를 표시
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+        body: Column(
+          children: <Widget>[
+            Flexible(
+              child: SmartRefresher(
+                enablePullUp: true,
+                controller: _refreshController,
+                onLoading: _refresh,
+                child: StreamBuilder(
+                  stream: _streamController.stream,
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else {
+                      return ListView.builder(
+                        controller: _scrollController,
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (context, index) {
+                          return _buildListTile(snapshot, index);
+                        },
+                      );
+                    }
+                  },
                 ),
               ),
-            );
-          },
+            ),
+          ],
         ),
         bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -168,31 +307,33 @@ class _BlogListScreenState extends State<BlogListScreen> {
               icon: Icon(Icons.search),
               label: '검색',
             ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat),
+              label: '채팅',
+            ),
           ],
           onTap: (int index) {
             if (index == 1) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => BlogCreateScreen(), // 글작성 페이지 이동
+                  builder: (context) => PostCreationScreen(),
                 ),
-              ).then(
-                    (newPost) {
-                  if (newPost != null) {
-                    setState(
-                          () {
-                        blogPosts.add(newPost);
-                      },
-                    );
-                  }
-                },
               );
             }
             else if (index == 2) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SearchScreen(), //검색 페이지 이동
+                  builder: (context) => SearchScreen(),
+                ),
+              );
+            }
+            else if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatScreen(),
                 ),
               );
             }
