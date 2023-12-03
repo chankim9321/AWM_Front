@@ -29,7 +29,6 @@ class _about_this_placeState extends State<about_this_place> {
         final data = json.decode(decodedBody);
 
         final logs = data['content'] as List;
-
         for (var log in logs) {
           final id = log['id']; // 'postId'를 'id'로 변경
           final nickName = log['nickName'];
