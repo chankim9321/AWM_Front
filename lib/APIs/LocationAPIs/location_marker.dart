@@ -6,38 +6,48 @@ class MarkerModel{
   final double latitude;
   final double longitude;
   final String category;
-
+  final int locationId;
+  final int visitCount;
   MarkerModel({
+    required this.locationId,
     required this.latitude,
     required this.longitude,
-    required this.category
+    required this.category,
+    required this.visitCount,
   });
 
   factory MarkerModel.fromJson(Map<String, dynamic> json){
     return MarkerModel(
+        locationId: json['locationId'],
         latitude: json['latitude'],
         longitude: json['longitude'],
-        category: json['category']
+        category: json['category'],
+        visitCount: json['visitCount']
     );
   }
 
   Map<String, dynamic> toJson(){
     return {
+        'locationId': locationId,
         'latitude' : latitude,
         'longitude' : longitude,
-        'category' : category
+        'category' : category,
+        'visitCount' : visitCount
     };
   }
   // JSON List를 Marker Model리스트로 변환하는 메서드
   static List<MarkerModel> fromJsonList(List<dynamic> jsonList) {
-    return jsonList.map((json) => MarkerModel.fromJson(json)).toList();
+    List<MarkerModel> result = [];
+    for (var json in jsonList) {
+      result.add(MarkerModel.fromJson(json));
+    }
+    return result;
   }
-
-  static Future<List<MarkerModel>> fetchMarkers() async {
-    final response = await http.get(Uri.parse("${ServerConf.url}API"));
-
+  static Future<List<MarkerModel>> fetchMarkers(double latitude, double longitude, double maxRange, double minRange) async {
+    final response = await http.get(Uri.parse("http://${ServerConf.url}/location/search/within-range?latitude=$latitude&longitude=$longitude&range=$maxRange&minRange=$minRange"));
     if (response.statusCode == 200) {
-      List<dynamic> jsonData = jsonDecode(response.body);
+      List<dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
+      print("좌표 불러오기 성공!");
       return MarkerModel.fromJsonList(jsonData);
     } else {
       throw Exception('Failed to load markers');

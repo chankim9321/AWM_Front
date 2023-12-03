@@ -11,6 +11,7 @@ import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/MapMarker/custom_marker.dart';
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mapdesign_flutter/components/customDialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,6 +27,69 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<CircleMarker> circles = [];
   double zoom = 15.0;
   List<MarkerModel> markerList = [];
+  List<double> radius = [0, 200, 400, 600, 800, 1000];
+  int radiusIndex = 2;
+
+  void increaseRadiusIndex(){
+    setState(() {
+      if(radiusIndex < radius.length - 1){
+        radiusIndex++;
+        // circles.clear();
+        // circles.add(
+        //   CircleMarker(
+        //     point: currentLocation!,
+        //     color: Colors.blue.withOpacity(0.1),
+        //     borderColor: Colors.blue.withOpacity(0.1),
+        //     borderStrokeWidth: 2,
+        //     useRadiusInMeter: true,  // 미터 단위 사용
+        //     radius: radius[radiusIndex],  //
+        //   ),
+        // );
+        // circles.add(
+        //   CircleMarker(
+        //     point: currentLocation!,
+        //     color: Colors.red.withOpacity(0.1),
+        //     borderColor: Colors.red.withOpacity(0.1),
+        //     borderStrokeWidth: 2,
+        //     useRadiusInMeter: true,  // 미터 단위 사용
+        //     radius: radius[radiusIndex-2],  //
+        //   ),
+        // );
+        // markerList.clear();
+        loadMarkerList();
+      }
+    });
+  }
+  void decreaseRadiusIndex(){
+    setState(() {
+      if(radiusIndex > 2){
+        radiusIndex--;
+        // circles.clear();
+        // circles.add(
+        //   CircleMarker(
+        //     point: currentLocation!,
+        //     color: Colors.blue.withOpacity(0.1),
+        //     borderColor: Colors.blue.withOpacity(0.1),
+        //     borderStrokeWidth: 2,
+        //     useRadiusInMeter: true,  // 미터 단위 사용
+        //     radius: radius[radiusIndex],  //
+        //   ),
+        // );
+        // circles.add(
+        //   CircleMarker(
+        //     point: currentLocation!,
+        //     color: Colors.red.withOpacity(0.1),
+        //     borderColor: Colors.red.withOpacity(0.1),
+        //     borderStrokeWidth: 2,
+        //     useRadiusInMeter: true,  // 미터 단위 사용
+        //     radius: radius[radiusIndex-2],  //
+        //   ),
+        // );
+        markerList.clear();
+        loadMarkerList();
+      }
+    });
+  }
 
   late final mapController = AnimatedMapController(
       vsync: this,
@@ -36,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getLocationData();
+    getCurrentLocation();
   }
   void setFocusOnCurrentLocation(){
     mapController.animateTo(dest: currentLocation!);
@@ -45,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
     // getMarkerInfoFromServer();
   }
-  Future<void> getLocationData() async{
+  Future<void> getCurrentLocation() async{
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -74,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             borderColor: Colors.blue.withOpacity(0.1),
             borderStrokeWidth: 2,
             useRadiusInMeter: true,  // 미터 단위 사용
-            radius: 300  //
+            radius: radius[radiusIndex],  //
         ),
       );
     });
@@ -85,19 +149,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       toggleAimPoint = !toggleAimPoint;
     });
   }
-  void getCoordinates() {
+  getCoordinates() {
     var center = mapController.mapController.camera.center; // 지도의 중앙 위치 가져오기
     print(center.latitude);
     print(center.longitude);
   }
-  Future<String> getToken() async{
-    return await storage.read(key: 'token') ?? '';
-  }
   void loadMarkerList() async{
     try{
-      markerList = await MarkerModel.fetchMarkers();
+      markerList = await MarkerModel.fetchMarkers(
+          currentLocation!.latitude,
+          currentLocation!.longitude,
+          radius[radiusIndex],
+          radius[radiusIndex-2],
+      );
     }catch(e){
-
+      // CustomDialog.showCustomDialog(context, "위치 불러오기", "위치정보를 불러오는데 실패했습니다! 네트워크 상태를 확인해주세요.");
+    }
+    for (var element in markerList) {
+      print(element.category);
     }
   }
 
@@ -115,6 +184,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             width: 60,
             height: 60,
             child: CustomMarkerIcon(
+              longitude: currentLocation!.longitude,
+              latitude: currentLocation!.latitude,
               isPlace: false,
               imagePath: "asset/img/portrait.webp",
               size: Size(400.0, 400.0),
@@ -122,33 +193,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       );
       // test
-      markers.add(
-        Marker(
-            point: latLng.LatLng(35.85836750155731, 128.48694463271696),
-            width: 60,
-            height: 60,
-            child: CustomMarkerIcon(
-              isPlace: true,
-              imagePath: "asset/img/cigarettes.webp",
-              size: Size(400.0, 400.0),
-            )
-        )
-      );
-
-      markerList.forEach((element) {
+      // markers.add(
+      //   Marker(
+      //     point: latLng.LatLng(35.85836750155731, 128.48694463271696),
+      //     width: 60,
+      //     height: 60,
+      //     child: CustomMarkerIcon(
+      //       isPlace: true,
+      //       imagePath: LocationCategoryPath.categoryPath["흡연장"]!,
+      //       size: Size(400.0, 400.0),
+      //     )
+      //   )
+      // );
+      for (var element in markerList) {
         markers.add(
           Marker(
             point: latLng.LatLng(element.latitude, element.longitude),
             width: 60,
             height: 60,
             child: CustomMarkerIcon(
+              latitude: element.latitude,
+              longitude: element.longitude,
+              category: element.category,
               isPlace: true,
-              imagePath: "asset/img/wojak.webp",
+              imagePath: LocationCategoryPath.categoryPath[element.category]!,
               size: Size(400, 400),
             )
           )
         );
-      });
+      }
       // 이후 API 요청을 하여 주변 근처 위치를 탐색
 
 
@@ -197,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           FlutterMap(
             mapController: mapController.mapController,
             options: MapOptions(
-              initialCenter: currentLocation ?? latLng.LatLng(0,0),
+              initialCenter: currentLocation ?? latLng.LatLng(51.509364, -0.128928),
               initialZoom: zoom,
             ),
             children: [
@@ -245,9 +318,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
            bottom: 80.0,
            right: 10.0,
            child: FloatingActionButton(
-             onPressed: () => {
-               setShowAimPoint()
-             },
+             onPressed: () {
+               setShowAimPoint();
+           },
              backgroundColor: AppColors.instance.skyBlue,
              child: Icon(
                toggleAimPoint ? Icons.close : Icons.add,
@@ -263,7 +336,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                showModalBottomSheet(
                  context: context,
                  builder: (BuildContext context) {
-                   return LocationCategory(); // Your custom widget
+                   return LocationCategory(
+                       latitude: mapController.mapController.camera.center.latitude,
+                       longitude: mapController.mapController.camera.center.longitude,
+                   ); // Your custom widget
                  },
                )
              },
@@ -278,8 +354,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
            bottom: 220.0,
            right: 10.0,
            child: FloatingActionButton(
-             onPressed: () => {
-               mapController.animatedZoomOut()
+             onPressed: () {
+               mapController.animatedZoomOut();
+               increaseRadiusIndex();
              },
              backgroundColor: AppColors.instance.skyBlue,
              child: Icon(
@@ -292,8 +369,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
            bottom: 290.0,
            right: 10.0,
            child: FloatingActionButton(
-             onPressed: () => {
-               mapController.animatedZoomIn()
+             onPressed: () {
+               mapController.animatedZoomIn();
+               decreaseRadiusIndex();
              },
              backgroundColor: AppColors.instance.skyBlue,
              child: Icon(

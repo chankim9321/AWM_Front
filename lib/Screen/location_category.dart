@@ -5,7 +5,15 @@ import 'package:mapdesign_flutter/app_colors.dart';
 
 
 class LocationCategory extends StatefulWidget {
-  const LocationCategory({super.key});
+  const LocationCategory({
+    super.key,
+    required this.latitude,
+    required this.longitude
+  });
+
+  final double latitude;
+  final double longitude;
+
 
   @override
   State<LocationCategory> createState() => _LocationCategoryState();
@@ -62,7 +70,11 @@ class _LocationCategoryState extends State<LocationCategory> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => LocationWritePage(mapCategoryName: categoryList[index].keys.first) // 글 쓰는 페이지로 이동
+                          builder: (context) => LocationWritePage(
+                              mapCategoryName: categoryList[index].keys.first,
+                              latitude: widget.latitude,
+                              longitude: widget.longitude,
+                          ) // 글 쓰는 페이지로 이동
                       )
                     )
                   },
@@ -76,4 +88,25 @@ class _LocationCategoryState extends State<LocationCategory> {
       )
     );
   }
+}
+class LocationCategoryPath {
+  static const String path = "asset/markers/";
+  static const Map<String, String> categoryPath = {
+    "도서관" : "${path}library.png",
+    "음식점" : "${path}restaurant.png",
+    "자전거" : "${path}bike.png",
+    "공원" : "${path}park.png",
+    "명소" : "${path}amusement.png",
+    "카페" : "${path}cafe.png",
+    "운동" : "${path}run.png",
+    "학교" : "${path}school.png",
+    "주차장" : "${path}parking.png",
+    "흡연장" : "${path}smoking.png",
+    "쓰레기통" : "${path}bin.png",
+    "편의점" : "${path}convenience.png",
+    "정류장" : "${path}busstop.png",
+    "프린트" : "${path}print.png",
+    "약국" : "${path}medical.png",
+    "기타" : "${path}unknown.png",
+  };
 }

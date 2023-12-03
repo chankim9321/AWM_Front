@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:mapdesign_flutter/LocationInfo/AfterClickMarker.dart';
+import 'package:mapdesign_flutter/LocationInfo/marker_clicked.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
@@ -136,8 +136,11 @@ class CustomMarkerIcon extends StatefulWidget {
   final String imagePath;
   final Size size;
   final bool isPlace;
-
-  CustomMarkerIcon({required this.imagePath, required this.size, this.isPlace = false});
+  final double latitude;
+  final double longitude;
+  final String category;
+  CustomMarkerIcon({required this.imagePath, required this.size, this.isPlace = false,
+    required this.latitude, required this.longitude, this.category = "none"});
 
   @override
   _CustomMarkerIconState createState() => _CustomMarkerIconState();
@@ -158,7 +161,7 @@ class _CustomMarkerIconState extends State<CustomMarkerIcon> {
           builder: (BuildContext context){
             return Container(
               height: MediaQuery.of(context).size.height,
-              child: LocalScreen()
+              child: MarkerClicked(latitude:widget.latitude, longitude: widget.longitude, category: widget.category)
             );
           }
       );

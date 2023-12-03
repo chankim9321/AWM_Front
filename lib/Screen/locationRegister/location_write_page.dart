@@ -3,12 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:mapdesign_flutter/APIs/LocationAPIs/location_register.dart';
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
+import 'package:mapdesign_flutter/Screen/home_screen.dart';
 import 'package:mapdesign_flutter/Screen/locationRegister/location_writer_form.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
+import 'package:mapdesign_flutter/components/customDialog.dart';
 
 
 class LocationWritePage extends StatefulWidget {
-  const LocationWritePage({super.key, required this.mapCategoryName});
+  const LocationWritePage({
+    super.key,
+    required this.mapCategoryName,
+    required this.latitude,
+    required this.longitude,
+  });
+  final double latitude;
+  final double longitude;
   final String mapCategoryName;
   @override
   State<LocationWritePage> createState() => _LocationWritePageState();
@@ -19,6 +30,8 @@ class _LocationWritePageState extends State<LocationWritePage> {
   final quill.QuillController _quillController = quill.QuillController.basic();
   final TextEditingController _textController = TextEditingController();
   final ImagePicker picker = ImagePicker();
+
+  final storage = SecureStorage();
   Future getImage(ImageSource imageSource) async {
     final XFile? pickedFile = await picker.pickImage(source: imageSource);
 
@@ -118,23 +131,23 @@ class _LocationWritePageState extends State<LocationWritePage> {
                   ),
                 ),
                 // 입력폼으로 이동
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.instance.skyBlue,
-                      minimumSize: Size(double.infinity, 200)
-                  ),
-                  onPressed: () => {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => LocationWriterForm(controller: _quillController))
-                    )
-                  },
-                  icon: Icon(Icons.edit_note),
-                  label: Text("모두에게 공유하고 싶은 정보를 입력하세요!"),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  height: 10.0,
-                ),
+                // ElevatedButton.icon(
+                //   style: ElevatedButton.styleFrom(
+                //       backgroundColor: AppColors.instance.skyBlue,
+                //       minimumSize: Size(double.infinity, 200)
+                //   ),
+                //   onPressed: () => {
+                //     Navigator.push(context,
+                //         MaterialPageRoute(builder: (context) => LocationWriterForm(controller: _quillController))
+                //     )
+                //   },
+                //   icon: Icon(Icons.edit_note),
+                //   label: Text("모두에게 공유하고 싶은 정보를 입력하세요!"),
+                // ),
+                // SizedBox(
+                //   width: double.infinity,
+                //   height: 10.0,
+                // ),
                 Container(
                   margin: EdgeInsets.all(10.0),
                   child: ElevatedButton.icon(
@@ -142,7 +155,26 @@ class _LocationWritePageState extends State<LocationWritePage> {
                       shape: StadiumBorder(),
                       minimumSize: Size(double.infinity - 20, 50),
                     ),
-                    onPressed: () => {},
+                    onPressed: () {
+                      try{
+                        LocationRegister.postLocation(
+                            widget.latitude,
+                            widget.longitude,
+                            widget.mapCategoryName,
+                            _textController.text
+                        );
+                        CustomDialog.showCustomDialog(context, "장소 등록", "장소 등록이 성공적으로 수행되었습니다!"
+                            "여러 사람이 장소를 선택할 시 점수가 상승하며 일정 점수 이상시 모든 유저에게 보이게 됩니다!");
+                      }catch(e){
+                        CustomDialog.showCustomDialog(context, "장소 등록", "장소 등록에 실패했습니다!");
+                      }finally{
+                        Navigator.pushAndRemoveUntil(
+                            context, MaterialPageRoute(
+                            builder: (context) => HomeScreen()
+                        ), (Route<dynamic> route) => false
+                        );
+                      }
+                    },
                     icon: Icon(Icons.share_location),
                     label: Text("등록"),
                   ),

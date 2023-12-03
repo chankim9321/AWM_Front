@@ -14,10 +14,10 @@ class SecureStorage{
   Future<void> writeSecureData(String key, String value) async {
     await storage.write(key: key, value: value);
   }
-  Future<String?> readSecureData(String key, String value) async {
+  Future<String?> readSecureData(String key) async {
     return await storage.read(key: key);
   }
-  Future<void> deleteSecureData(String key, String value) async{
+  Future<void> deleteSecureData(String key) async{
     await storage.delete(key: key);
   }
 }
