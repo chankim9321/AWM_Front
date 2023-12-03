@@ -12,6 +12,12 @@
       </array>
       </dict>
     </array>
+    <!--gal: Required -->
+    <key>NSPhotoLibraryAddUsageDescription</key>
+  	<string>We need add only access to save medias</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to save medias</string>
+    <!--gal: Required -->
     <key>NSPhotoLibraryUsageDescription </key>
     <string>사진첩 접근이 필요 합니다</string>
     <key>NSCameraUsageDescription </key>
