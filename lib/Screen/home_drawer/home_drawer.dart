@@ -1,10 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mapdesign_flutter/APIs/UserAPIs/user_profile.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/LoginPage/login_module.dart';
 import 'package:mapdesign_flutter/LoginPage/login_page.dart';
+import 'package:mapdesign_flutter/Screen/home_drawer/profile_modify.dart';
 import 'dart:math';
 
 import 'package:mapdesign_flutter/Screen/home_screen.dart';
+import 'package:mapdesign_flutter/components/customDialog.dart';
 class HomeDrawer extends StatefulWidget {
   const HomeDrawer({super.key});
 
@@ -15,21 +19,51 @@ class HomeDrawer extends StatefulWidget {
 class _HomeDrawerState extends State<HomeDrawer> {
 
   String? loginBanner;
-  void checkLogined(){
+  String nickname = "익명의 유저";
+  List<Uint8List> profileImage = [];
+  String defaultProfile = "asset/img/default_profile.jpeg";
+  bool isLogined(){
+    if (SecureStorage().readSecureData('token') != null){
+      return true;
+    }else{
+      return false;
+    }
+  }
+  void _checkLogined(){
     if (SecureStorage().readSecureData('token') != null){
       loginBanner = "로그아웃";
     }else{
       loginBanner = "로그인";
     }
   }
+  void _loadUserProfile() async {
+    try{
+      if (SecureStorage().readSecureData('token') != null){
+        var data = await UserProfile.getUserProfile();
+        nickname = data['nickname'];
+        profileImage = data['profile'];
+      }
+    }catch(e){
+      nickname = "익명의 유저";
+      profileImage = [];
+    }
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    checkLogined();
+    _checkLogined();
+    _loadUserProfile();
   }
   @override
   Widget build(BuildContext context) {
+    ImageProvider backgroundImage;
+
+    if (profileImage.isNotEmpty && profileImage[0] is Uint8List) {
+      backgroundImage = MemoryImage(profileImage[0]);
+    } else {
+      backgroundImage = AssetImage(defaultProfile);
+    }
     return Container(
       child: Stack(
           children: [
@@ -53,13 +87,13 @@ class _HomeDrawerState extends State<HomeDrawer> {
                     DrawerHeader(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             CircleAvatar(
                               radius: 50.0,
-                              backgroundImage: AssetImage('asset/img/pepe.webp'),
+                              backgroundImage: backgroundImage,
                             ),
                             SizedBox(height: 10.0,),
-                            Text("PePe The Frog",
+                            Text(nickname,
                                 style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20.0,
@@ -72,7 +106,19 @@ class _HomeDrawerState extends State<HomeDrawer> {
                         child: ListView(
                           children: [
                             ListTile(
-                              onTap: () {},
+                              onTap: () {
+                                if(isLogined()){
+                                  CustomDialog.showCustomDialog(context, "로그인", "로그인이 필요합니다.");
+                                }else{
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => ProfileModifyPage(
+                                        nickname: nickname,
+                                        profileImage: profileImage,
+                                      ))
+                                  );
+                                }
+                              },
                               leading: Icon(
                                 Icons.person,
                                 color: Colors.white,
