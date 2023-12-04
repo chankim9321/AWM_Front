@@ -70,20 +70,20 @@ Future<Uint8List> createMarkerImage(String imagePath, Size size) async {
       borderPaint);
 
 // Add tag circle
-  canvas.drawRRect(
-      RRect.fromRectAndCorners(
-        Rect.fromLTWH(
-            size.width - tagWidth,
-            0.0,
-            tagWidth,
-            tagWidth
-        ),
-        topLeft: radius,
-        topRight: radius,
-        bottomLeft: radius,
-        bottomRight: radius,
-      ),
-      tagPaint);
+//   canvas.drawRRect(
+//       RRect.fromRectAndCorners(
+//         Rect.fromLTWH(
+//             size.width - tagWidth,
+//             0.0,
+//             tagWidth,
+//             tagWidth
+//         ),
+//         topLeft: radius,
+//         topRight: radius,
+//         bottomLeft: radius,
+//         bottomRight: radius,
+//       ),
+//       tagPaint);
 
 // Add tag text
   TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);

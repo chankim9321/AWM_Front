@@ -2,47 +2,40 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 //import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ModifyScreen extends StatefulWidget {
+  const ModifyScreen({super.key, required this.locationId});
+
+  final int locationId;
   @override
   _ModifyScreenState createState() => _ModifyScreenState();
 }
 
 class _ModifyScreenState extends State<ModifyScreen> {
   quill.QuillController? _controller;
-  String jwtToken = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InNldW5neWVvYnNpbkBnbWFpbC5jb20iLCJwcm92aWRlciI6Imdvb2dsZSIsIm5pY2tOYW1lIjoi7KCc65OcIiwicmFua1Njb3JlIjowLCJpYXQiOjE3MDE1Nzg3MDYsImV4cCI6MTcwMTYyMTkwNn0.8yUo-pgQKq2ZCqhjdgg7F0QC1Do3MDXp_8rEO7fLEig';//토큰은 직접입력했음
-  //String? jwtToken;
-  //final storage = FlutterSecureStorage();
+  String? token;
   int currentPage = 0;  // 페이지 번호를 저장할 변수 추가
 
+  void _setToken() async{
+    token = await SecureStorage().readSecureData('token');
+  }
   @override
   void initState() {
     super.initState();
     _resetDocument();
-    _loadJwtToken();
+    _setToken();
   }
 
   void _resetDocument() {
     setState(() {
       _controller = quill.QuillController.basic();
     });
-  }
-
-  Future<void> _loadJwtToken() async {
-    try {
-      //final String? token = await storage.read(key: 'jwt_token');
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      setState(() {
-        //jwtToken = token ?? jwtToken;
-        jwtToken = prefs.getString('jwt_token') ?? jwtToken;           //토큰저장하는거 securestorage로 변경해야함
-      });
-    } catch (e){
-      print('토큰 불러오기 오류');      //안될수 catch에 있는거 다 없애고 try랑 try의 괄호 없애기
-    }
   }
 
   /*Future<void> _fetchDataFromBackend() async { //토큰없이도 볼 수 있음 , 무슨내용 썻는지 확인용 수정은 아직 안됨
@@ -84,21 +77,21 @@ class _ModifyScreenState extends State<ModifyScreen> {
 
 
 
-  Future<void> _saveDocument() async {          //저장하는 매소드, 이미지는 아직 안됨
+  Future<void> _saveDocument() async {
     if (_controller == null) return;
-
     final String plainText = _controller!.document.toPlainText();
-
     try {
+      print(plainText);
+      print(token);
+      print('http://${ServerConf.url}/user/log/save/${widget.locationId}');
       final response = await http.post(
-        Uri.parse('https://f42b-27-124-178-180.ngrok-free.app/user/log/save/1'), //url 경로치기 ex):https://f42b-27-124-178-180.ngrok-free.app/user/log/save/1 {locationid}
+        Uri.parse('http://${ServerConf.url}/user/log/save/${widget.locationId}'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': '$jwtToken',//토큰 가지고 있어야 함
+          'Authorization': token!,//토큰 가지고 있어야 함
         },
         body: jsonEncode({'content': plainText}),
       );
-
       if (response.statusCode == 200) {
         print('문서가 성공적으로 업데이트되었습니다.');
         ScaffoldMessenger.of(context).showSnackBar(

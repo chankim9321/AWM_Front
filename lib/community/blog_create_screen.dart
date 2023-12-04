@@ -4,11 +4,13 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 
-String baseUrl = '118.67.135.48:8080';
-String Token = '';
-Future<void> createPost(String title, String content, String imagePath, String authToken) async {
-  final Uri endpoint = Uri.parse('https://${baseUrl}/user/board/save/1'); // Replace with your actual backend endpoint
+String baseUrl = ServerConf.url;
+
+Future<void> createPost(String title, String content, String imagePath, String authToken, int locationId) async {
+  final Uri endpoint = Uri.parse('http://$baseUrl/user/board/save/$locationId'); // Replace with your actual backend endpoint
 
   // Read JSON file containing title and content
   final Map<String, dynamic> postData = {
@@ -19,7 +21,7 @@ Future<void> createPost(String title, String content, String imagePath, String a
 
   // Create a multipart request
   final http.MultipartRequest request = http.MultipartRequest('POST', endpoint);
-  request.headers['Authorization'] = '$authToken';
+  request.headers['Authorization'] = authToken;
   // Add JSON file part
   request.files.add(http.MultipartFile.fromString(
     'dto', // Assuming your backend expects 'dto' as the key for the JSON file
@@ -52,6 +54,8 @@ Future<void> createPost(String title, String content, String imagePath, String a
 }
 
 class PostCreationScreen extends StatefulWidget {
+  const PostCreationScreen({super.key, required this.locationId});
+  final int locationId;
   @override
   _PostCreationScreenState createState() => _PostCreationScreenState();
 }
@@ -60,7 +64,17 @@ class _PostCreationScreenState extends State<PostCreationScreen> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController contentController = TextEditingController();
   File? imageFile;
+  late final String? token;
 
+  void _setToken() async{
+    token = await SecureStorage().readSecureData('token');
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _setToken();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +92,6 @@ class _PostCreationScreenState extends State<PostCreationScreen> {
             TextField(
               controller: titleController,
               decoration: InputDecoration(
-                //labelText: '제목',
                 hintText: '제목을 입력하세요',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
@@ -129,9 +142,7 @@ class _PostCreationScreenState extends State<PostCreationScreen> {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                String authToken =
-                    '${Token}'; // Replace with your actual authentication token
-                createPost(titleController.text, contentController.text, imageFile?.path ?? '', authToken);
+                createPost(titleController.text, contentController.text, imageFile?.path ?? '', token!, widget.locationId);
               },
               child: Text('등록하기'),
               style: ElevatedButton.styleFrom(

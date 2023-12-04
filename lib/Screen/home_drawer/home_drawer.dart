@@ -17,28 +17,32 @@ class HomeDrawer extends StatefulWidget {
 }
 
 class _HomeDrawerState extends State<HomeDrawer> {
-
-  String? loginBanner;
-  String nickname = "익명의 유저";
+  String? loginBanner = "로그인";
+  String? nickname = "익명의 유저";
   List<Uint8List> profileImage = [];
+  String? token;
   String defaultProfile = "asset/img/default_profile.jpeg";
+
   bool isLogined(){
-    if (SecureStorage().readSecureData('token') != null){
+    if (token != null){
       return true;
     }else{
       return false;
     }
   }
-  void _checkLogined(){
-    if (SecureStorage().readSecureData('token') != null){
+  Future<void> _checkLogined() async{
+    if (token != null){
       loginBanner = "로그아웃";
     }else{
       loginBanner = "로그인";
     }
+    setState(() {
+
+    });
   }
-  void _loadUserProfile() async {
+  Future<void> _loadUserProfile() async {
     try{
-      if (SecureStorage().readSecureData('token') != null){
+      if (token != null){
         var data = await UserProfile.getUserProfile();
         nickname = data['nickname'];
         profileImage = data['profile'];
@@ -47,13 +51,24 @@ class _HomeDrawerState extends State<HomeDrawer> {
       nickname = "익명의 유저";
       profileImage = [];
     }
+    setState(() {
+
+    });
   }
+  Future<void> _setToken() async {
+    token = await SecureStorage().readSecureData('token');
+  }
+  Future<void> _initializeAsync() async {
+    await _setToken(); // _setToken()이 완료될 때까지 기다림
+    await _checkLogined();
+    await _loadUserProfile();
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _checkLogined();
-    _loadUserProfile();
+    _initializeAsync();
   }
   @override
   Widget build(BuildContext context) {
@@ -85,18 +100,24 @@ class _HomeDrawerState extends State<HomeDrawer> {
                 child: Column(
                   children: [
                     DrawerHeader(
+
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            CircleAvatar(
-                              radius: 50.0,
-                              backgroundImage: backgroundImage,
+                            SizedBox(
+                              width: 80.0,
+                              height: 80.0,
+                              child: CircleAvatar(
+                                radius: 50.0,
+                                backgroundImage: backgroundImage,
+                              ),
                             ),
-                            SizedBox(height: 10.0,),
-                            Text(nickname,
+                            SizedBox(height: 5.0,),
+                            Text(nickname!,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 20.0,
+                                fontSize: 16.0,
                               )
                             ),
                           ],
@@ -113,7 +134,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (context) => ProfileModifyPage(
-                                        nickname: nickname,
+                                        nickname: nickname!,
                                         profileImage: profileImage,
                                       ))
                                   );

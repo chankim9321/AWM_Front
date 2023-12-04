@@ -3,13 +3,16 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:latlong2/latlong.dart' as latLng;
-import 'package:http/http.dart' as http;
+import 'dart:typed_data';
 import 'package:mapdesign_flutter/APIs/LocationAPIs/location_marker.dart';
+import 'package:mapdesign_flutter/APIs/UserAPIs/user_profile.dart';
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/Screen/home_drawer/home_drawer.dart';
 import 'package:mapdesign_flutter/Screen/location_category.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/MapMarker/custom_marker.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 
@@ -29,33 +32,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<MarkerModel> markerList = [];
   List<double> radius = [0, 200, 400, 600, 800, 1000];
   int radiusIndex = 2;
+  List<Uint8List> profileImage = [];
+  String? token;
+  String imagePath = "asset/img/default_profile.jpeg";
 
+  Future<void> _saveProfileImage() async {
+    if(_isTokenAvailable()){
+      try{
+        if (token != null){
+          var data = await UserProfile.getUserProfile();
+          profileImage = data['profile'];
+
+          imagePath = "asset/img/user_profile.png";
+          File imageFile = File(imagePath);
+          await imageFile.writeAsBytes(profileImage[0]);
+        }
+      }catch(e){
+        profileImage = [];
+      }
+    }
+  }
+  Future<void> _initializeAsync() async {
+    await _setToken(); // _setToken()이 완료될 때까지 기다림
+    await _saveProfileImage();
+  }
+
+  Future<void> _setToken() async {
+    token = await SecureStorage().readSecureData('token');
+  }
+  bool _isTokenAvailable() {
+    if(token != null){
+      return true;
+    }
+    return false;
+  }
   void increaseRadiusIndex(){
     setState(() {
       if(radiusIndex < radius.length - 1){
         radiusIndex++;
-        // circles.clear();
-        // circles.add(
-        //   CircleMarker(
-        //     point: currentLocation!,
-        //     color: Colors.blue.withOpacity(0.1),
-        //     borderColor: Colors.blue.withOpacity(0.1),
-        //     borderStrokeWidth: 2,
-        //     useRadiusInMeter: true,  // 미터 단위 사용
-        //     radius: radius[radiusIndex],  //
-        //   ),
-        // );
-        // circles.add(
-        //   CircleMarker(
-        //     point: currentLocation!,
-        //     color: Colors.red.withOpacity(0.1),
-        //     borderColor: Colors.red.withOpacity(0.1),
-        //     borderStrokeWidth: 2,
-        //     useRadiusInMeter: true,  // 미터 단위 사용
-        //     radius: radius[radiusIndex-2],  //
-        //   ),
-        // );
-        // markerList.clear();
         loadMarkerList();
       }
     });
@@ -64,27 +78,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() {
       if(radiusIndex > 2){
         radiusIndex--;
-        // circles.clear();
-        // circles.add(
-        //   CircleMarker(
-        //     point: currentLocation!,
-        //     color: Colors.blue.withOpacity(0.1),
-        //     borderColor: Colors.blue.withOpacity(0.1),
-        //     borderStrokeWidth: 2,
-        //     useRadiusInMeter: true,  // 미터 단위 사용
-        //     radius: radius[radiusIndex],  //
-        //   ),
-        // );
-        // circles.add(
-        //   CircleMarker(
-        //     point: currentLocation!,
-        //     color: Colors.red.withOpacity(0.1),
-        //     borderColor: Colors.red.withOpacity(0.1),
-        //     borderStrokeWidth: 2,
-        //     useRadiusInMeter: true,  // 미터 단위 사용
-        //     radius: radius[radiusIndex-2],  //
-        //   ),
-        // );
         markerList.clear();
         loadMarkerList();
       }
@@ -101,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // TODO: implement initState
     super.initState();
     getCurrentLocation();
+    _initializeAsync();
   }
   void setFocusOnCurrentLocation(){
     mapController.animateTo(dest: currentLocation!);
@@ -131,16 +125,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     setState(() {
       currentLocation = latLng.LatLng(position.latitude, position.longitude);
-      circles.add(
-        CircleMarker(
-            point: currentLocation!,
-            color: Colors.blue.withOpacity(0.1),
-            borderColor: Colors.blue.withOpacity(0.1),
-            borderStrokeWidth: 2,
-            useRadiusInMeter: true,  // 미터 단위 사용
-            radius: radius[radiusIndex],  //
-        ),
-      );
     });
     setFocusOnCurrentLocation();
   }
@@ -187,24 +171,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               longitude: currentLocation!.longitude,
               latitude: currentLocation!.latitude,
               isPlace: false,
-              imagePath: "asset/img/portrait.webp",
+              imagePath: imagePath,
               size: Size(400.0, 400.0),
             ),
         ),
       );
-      // test
-      // markers.add(
-      //   Marker(
-      //     point: latLng.LatLng(35.85836750155731, 128.48694463271696),
-      //     width: 60,
-      //     height: 60,
-      //     child: CustomMarkerIcon(
-      //       isPlace: true,
-      //       imagePath: LocationCategoryPath.categoryPath["흡연장"]!,
-      //       size: Size(400.0, 400.0),
-      //     )
-      //   )
-      // );
       for (var element in markerList) {
         markers.add(
           Marker(
@@ -222,17 +193,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           )
         );
       }
-      // 이후 API 요청을 하여 주변 근처 위치를 탐색
 
-
-      // markers.add()
     }
     var appBar = AppBar(
       title: Container(
         width: double.infinity,
         height: 40,
         decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(5)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(5)
+        ),
         child: Center(
           child: TextField(
             style: TextStyle(color: Colors.black),

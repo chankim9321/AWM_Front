@@ -1,27 +1,36 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 
-class about_this_place extends StatefulWidget {
+class AboutThisPlace extends StatefulWidget {
+  const AboutThisPlace({super.key, required this.locationId});
+  final int locationId;
   @override
-  _about_this_placeState createState() => _about_this_placeState();
+  _AboutThisPlaceState createState() => _AboutThisPlaceState();
 }
 
-class _about_this_placeState extends State<about_this_place> {
+class _AboutThisPlaceState extends State<AboutThisPlace> {
   int currentPage = 0;
+  late final String? token;
   List<Map<String, dynamic>> contentList = [];
-  String jwtToken = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Iuq5gOywrO2YuCIsInByb3ZpZGVyIjoiQXBwVXNlciIsIm5pY2tOYW1lIjoi6rCA66CMIiwicmFua1Njb3JlIjowLCJpYXQiOjE3MDE2MDMzMjEsImV4cCI6MTcwMTY0NjUyMX0.1aCtdD5wb79azh2g-EKIdhjFLg7811gAKDMw1errkWU';
 
   @override
   void initState() {
     super.initState();
     _fetchDataFromBackend();
+    _setToken();
+  }
+  void _setToken() async{
+    token = await SecureStorage().readSecureData('token');
   }
 
   Future<void> _fetchDataFromBackend() async {
     try {
+      print('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage');
       final response = await http.get(
-        Uri.parse('https://79fd-211-224-31-97.ngrok-free.app/log/paging/1?page=$currentPage'),//paging과 ?page사이에는 {locationid}가 들어가야함
+        Uri.parse('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage'),//paging과 ?page사이에는 {locationid}가 들어가야함
       );
 
       if (response.statusCode == 200) {
@@ -36,7 +45,6 @@ class _about_this_placeState extends State<about_this_place> {
           final content = log['content'];
           final likeCount = log['likeCount'];
           final badCount = log['badCount'];
-
           setState(() {
             contentList.add({'id': id, 'nickName': nickName, 'content': content, 'likeCount': likeCount, 'badCount': badCount});
           });
@@ -44,7 +52,6 @@ class _about_this_placeState extends State<about_this_place> {
       } else {
         print('API 호출 실패: ${response.statusCode}');
       }
-
       currentPage++;
     } catch (error) {
       print('API 호출 에러: $error');
@@ -54,10 +61,10 @@ class _about_this_placeState extends State<about_this_place> {
   Future<void> _deletePost(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse('https://79fd-211-224-31-97.ngrok-free.app/user/logBoard/delete/$id'),
+        Uri.parse('http://${ServerConf.url}/user/logBoard/delete/$id'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': '$jwtToken',
+          'Authorization': token!,
         },
       );
 
@@ -87,10 +94,10 @@ class _about_this_placeState extends State<about_this_place> {
   Future<void> _likePost(int id) async {
     try {
       final response = await http.post(
-        Uri.parse('https://79fd-211-224-31-97.ngrok-free.app/user/logBoard/likeCount/$id'),
+        Uri.parse('http://${ServerConf.url}/user/logBoard/likeCount/$id'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': '$jwtToken',
+          'Authorization': token!,
         },
         body: json.encode({
           'isLike': true,
@@ -121,10 +128,10 @@ class _about_this_placeState extends State<about_this_place> {
   Future<void> _dislikePost(int id) async {
     try {
       final response = await http.post(
-        Uri.parse('https://79fd-211-224-31-97.ngrok-free.app/user/logBoard/badCount/$id'),
+        Uri.parse('http://${ServerConf.url}/user/logBoard/badCount/$id'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': '$jwtToken',
+          'Authorization': token!,
         },
       );
 

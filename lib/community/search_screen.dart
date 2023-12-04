@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key, required this.locationId});
+  final int locationId;
+
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
@@ -21,15 +24,17 @@ class _SearchScreenState extends State<SearchScreen> {
         title: Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: _textEditingController,
-                style: TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: '검색어를 입력하세요',
-                  hintStyle: TextStyle(color: Colors.white),
-                  border: InputBorder.none,
+                child: TextField(
+                  controller: _textEditingController,
+                  style: TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    hintText: '검색어를 입력하세요',
+                    hintStyle: TextStyle(color: Colors.white),
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide.none
+                    ),
+                  ),
                 ),
-              ),
             ),
             IconButton(
               icon: Icon(Icons.clear),

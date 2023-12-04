@@ -4,6 +4,8 @@ import 'package:mapdesign_flutter/community/search_screen.dart';
 import 'package:mapdesign_flutter/community/blog_create_screen.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key, required this.locationId});
+  final int locationId;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +19,7 @@ class HomePage extends StatelessWidget {
             // 버튼을 누르면 다른 페이지로 이동
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ChatScreen()),
+              MaterialPageRoute(builder: (context) => ChatScreen(locationId: locationId,)),
             );
           },
           child: Text('다음 페이지로 이동'),
@@ -25,7 +27,7 @@ class HomePage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: '홈',
@@ -50,7 +52,7 @@ class HomePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PostCreationScreen(), // 글작성 페이지 이동
+                builder: (context) => PostCreationScreen(locationId: locationId), // 글작성 페이지 이동
               ),
             );
           }
@@ -58,7 +60,7 @@ class HomePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => SearchScreen(), //검색 페이지 이동
+                builder: (context) => SearchScreen(locationId: locationId,), //검색 페이지 이동
               ),
             );
           }
@@ -66,7 +68,7 @@ class HomePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ChatScreen(), //검색 페이지 이동
+                builder: (context) => ChatScreen(locationId: locationId), //검색 페이지 이동
               ),
             );
           }
@@ -78,6 +80,8 @@ class HomePage extends StatelessWidget {
 
 
 class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key, required this.locationId});
+  final int locationId;
   @override
   State createState() => ChatScreenState();
 }

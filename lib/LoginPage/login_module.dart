@@ -29,6 +29,7 @@ class _LoginModuleState extends State<LoginModule> {
       LoginPage(),
     ];
   }
+  // skip 버튼을 눌렀을 때 마지막 페이지로 이동
   void _setLastPage(){
     setState(() {
       _current = 3;
@@ -50,7 +51,7 @@ class _LoginModuleState extends State<LoginModule> {
           enlargeCenterPage: true,
           viewportFraction: 0.9,
           aspectRatio: 2.0,
-          initialPage: 1,
+          initialPage: 0,
           enableInfiniteScroll: false,
           scrollDirection: Axis.horizontal,
           pageSnapping: true,
