@@ -16,18 +16,8 @@ class MarkerClicked extends StatefulWidget {
 }
 
 class _MarkerClickedState extends State<MarkerClicked> {
-  // List<String> imagePaths = [
-  //   'asset/img/tower_image.jpeg',
-  //   'asset/img/test_1.webp',
-  //   'asset/img/test_2.webp',
-  //   'asset/img/test_3.jpeg',
-  //   'asset/img/test_4.jpg',
-  //   'asset/img/test_5.jpg',
-  //   'asset/img/test_6.jpg',
-  // ];
   List<Uint8List> imagePaths = [];
   String title = '';
-  String mainImagePath = 'asset/img/tower_image.jpeg';
   int currentPage = 0;
   final double imageWidth = 60.0; // 이미지 너비
   final double imageHeight = 60.0; // 이미지 높이
@@ -175,8 +165,9 @@ class _MarkerClickedState extends State<MarkerClicked> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => DetailScreen(locationId: locationId, imagePaths: imagePaths))
-                                    );
+                                      builder: (context) => DetailScreen(locationId: locationId, imagePaths: imagePaths, locationName: title)
+                                    )
+                                  );
                                 },
                                 icon: Icon(
                                   Icons.arrow_right_alt,

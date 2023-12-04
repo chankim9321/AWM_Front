@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mapdesign_flutter/LocationInfo/modifypage.dart';
 import 'package:mapdesign_flutter/Screen/locationRegister/location_write_page.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 
@@ -13,8 +12,6 @@ class LocationCategory extends StatefulWidget {
 
   final double latitude;
   final double longitude;
-
-
   @override
   State<LocationCategory> createState() => _LocationCategoryState();
 }
@@ -24,7 +21,10 @@ class _LocationCategoryState extends State<LocationCategory> {
   Color iconColor = AppColors.instance.skyBlue;
   Color backgroundColor = AppColors.instance.whiteGrey;
   final List<String> categoryKey = [
-    "도서관", "음식점", "자전거", "공원", "명소", "카페", "운동", "학교", "주차장", "흡연장", "쓰레기통", "편의점", "정류장", "약국", "프린트","기타"
+    "도서관", "음식점", "자전거", "공원",
+    "명소", "카페", "운동", "학교",
+    "주차장", "흡연장", "쓰레기통", "편의점",
+    "정류장", "약국", "프린트","기타"
   ];
   final List<Map<String, Icon>> categoryList = [
     {"도서관" : Icon(Icons.menu_book, semanticLabel: "도서관",)},

@@ -11,9 +11,10 @@ import 'about_this_place.dart';
 import 'package:mapdesign_flutter/community/blog_list_screen.dart';
 import 'package:mapdesign_flutter/community/chat.dart';
 class DetailScreen extends StatefulWidget {
-  const DetailScreen({super.key, required this.locationId, required this.imagePaths});
+  const DetailScreen({super.key, required this.locationId, required this.imagePaths, required this.locationName});
   final List<Uint8List> imagePaths;
   final int locationId;
+  final String locationName;
   @override
   _DetailScreenState createState() => _DetailScreenState();
 }
@@ -51,7 +52,7 @@ class _DetailScreenState extends State<DetailScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ModifyScreen()),
+                MaterialPageRoute(builder: (context) => ModifyScreen(locationId: widget.locationId,)),
               );
             },
           ),
@@ -87,12 +88,11 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
             SizedBox(height: screenHeight * 0.05), // Space between the carousel and the text
             Text(
-              'Place',
+              widget.locationName,
               style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
             ),
             SnsUIHeartIconScreen(),
             SizedBox(height: 10.0), // Adjust bottom space
-
             Container(
               margin: EdgeInsets.only(left: 10, right: 10),
               width: MediaQuery.of(context).size.width,
@@ -121,30 +121,26 @@ class _DetailScreenState extends State<DetailScreen> {
                               setState(() {
                                 _selectedIndex = index;
                               }),
-                              print(_selectedIndex),
                               if(index == 0){
                                  Navigator.push(
                                      context,
                                      MaterialPageRoute(
-                                         builder: (context) => about_this_place())
+                                         builder: (context) => AboutThisPlace(locationId: widget.locationId))
                                  )
                               }
-
                               else if (_selectedIndex == 1) {
-                                // Navigate to the CommitLogScreen
-                                Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                builder: (context) => BlogListScreen(),
-                                ),
-                                )
-                              }
-                              else if (_selectedIndex == 2) {
-                                // Navigate to the CommitLogScreen
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ChatScreen(),
+                                      builder: (context) => BlogListScreen(locationId: widget.locationId,),
+                                    ),
+                                  )
+                              }
+                              else if (_selectedIndex == 2){
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(locationId: widget.locationId),
                                   ),
                                 )
                               }

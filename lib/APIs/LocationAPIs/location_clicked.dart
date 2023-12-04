@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
-import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class LocationClicked{

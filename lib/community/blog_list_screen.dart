@@ -9,6 +9,7 @@ import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
 import 'package:mapdesign_flutter/community/chat.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:typed_data';
+import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/community/detail.dart';
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
 
@@ -35,15 +36,16 @@ class Post {
 }
 
 class BlogListScreen extends StatefulWidget {
+  const BlogListScreen({super.key, required this.locationId});
+  final int locationId;
+
   @override
   _BlogListScreenState createState() => _BlogListScreenState();
 }
 
 class _BlogListScreenState extends State<BlogListScreen> {
-  StreamController<List<Post>> _streamController =
-  StreamController<List<Post>>.broadcast();
+  final StreamController<List<Post>> _streamController = StreamController<List<Post>>.broadcast();
   int currentPage = 0;
-  int locationId = 1;
   bool isLoading = false;
   List<Post> dataList = [];
 
@@ -57,7 +59,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
 
   Future<void> _refresh() async {
     try {
-      List<Post> newTodos = await getTodo(locationId, currentPage);
+      List<Post> newTodos = await getTodo(widget.locationId, currentPage);
       print('currentPage');
       print(currentPage);
       if (newTodos.isNotEmpty) {
@@ -73,7 +75,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
     try {
       if (!isLoading) {
         isLoading = true;
-        List<Post> newTodos = await getTodo(locationId, currentPage+1);
+        List<Post> newTodos = await getTodo(widget.locationId, currentPage+1);
         if (newTodos.isNotEmpty) {
           dataList.addAll(newTodos);
           _streamController.add(dataList);
@@ -87,14 +89,14 @@ class _BlogListScreenState extends State<BlogListScreen> {
   }
 
   Future<List<Post>> getTodo(int locationId, int page) async {
-    String original = 'http://${baseUrl}';
-    String sub = "/board/paging/${locationId}?page=$page";
+    String original = 'http://$baseUrl';
+    String sub = "/board/paging/$locationId?page=$page";
     String url = original + sub;
-    http.Client _client = http.Client();
+    http.Client client = http.Client();
     print(url);
     List<Post> list = [];
     try {
-      final response = await _client.get(Uri.parse(url));
+      final response = await client.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final todos = json.decode(utf8.decode(response.bodyBytes))["content"];
         todos.forEach((todo) {
@@ -110,7 +112,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
     } catch (e) {
       throw Exception("Error while fetching todos");
     } finally {
-      _client.close();
+      client.close();
     }
     return list;
   }
@@ -188,12 +190,12 @@ class _BlogListScreenState extends State<BlogListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "$title",
+                            title,
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           SizedBox(height: 8),
                           Text(
-                            "$content",
+                            content,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -223,7 +225,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
     );
   }
 
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void dispose() {
@@ -248,11 +250,17 @@ class _BlogListScreenState extends State<BlogListScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('장소이름'),
-          backgroundColor: Colors.blue,
+          title: Text('커뮤니티',
+            style: TextStyle(
+              color: AppColors.instance.white,
+            ),
+          ),
+          backgroundColor: AppColors.instance.skyBlue,
           actions: <Widget>[
             IconButton(
-              icon: Icon(Icons.refresh),
+              icon: Icon(Icons.refresh,
+                color: AppColors.instance.white,
+              ),
               onPressed: () {
                 setState(() {
                   currentPage = 0;
@@ -294,7 +302,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
         ),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          items: [
+          items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: '홈',
@@ -317,7 +325,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PostCreationScreen(),
+                  builder: (context) => PostCreationScreen(locationId: widget.locationId),
                 ),
               );
             }
@@ -325,7 +333,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SearchScreen(),
+                  builder: (context) => SearchScreen(locationId: widget.locationId),
                 ),
               );
             }
@@ -333,7 +341,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChatScreen(),
+                  builder: (context) => ChatScreen(locationId: widget.locationId),
                 ),
               );
             }
