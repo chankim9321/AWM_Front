@@ -4,12 +4,12 @@ import 'dart:typed_data';
 import 'package:mapdesign_flutter/LocationInfo/place_component/sns_ui_heart_icon_screen.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/community/content.dart';
-import 'modifypage.dart';
+import 'modify_page.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'about_this_place.dart';
 
 import 'package:mapdesign_flutter/community/blog_list_screen.dart';
-import 'package:mapdesign_flutter/community/chat.dart';
+import 'package:mapdesign_flutter/community/realchat.dart';
 class DetailScreen extends StatefulWidget {
   const DetailScreen({super.key, required this.locationId, required this.imagePaths, required this.locationName});
   final List<Uint8List> imagePaths;
@@ -140,7 +140,7 @@ class _DetailScreenState extends State<DetailScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ChatScreen(locationId: widget.locationId),
+                                    builder: (context) => ChatScreen(locationId: widget.locationId, nickName: 'sucker',),
                                   ),
                                 )
                               }

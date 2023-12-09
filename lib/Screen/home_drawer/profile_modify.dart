@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
@@ -37,8 +38,7 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
     token = await SecureStorage().readSecureData("token");
   }
   Future<bool> updateProfile(String nickname, Uint8List? imageData) async {
-    var uri = Uri.parse(''); // 서버 API 주소
-
+    var uri = Uri.parse('http://${ServerConf.url}/'); // 서버 API 주소
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Authorization" : token!,

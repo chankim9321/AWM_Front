@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mapdesign_flutter/APIs/UserAPIs/user_profile.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/LoginPage/login_module.dart';
-import 'package:mapdesign_flutter/LoginPage/login_page.dart';
 import 'package:mapdesign_flutter/Screen/home_drawer/profile_modify.dart';
-import 'dart:math';
-
-import 'package:mapdesign_flutter/Screen/home_screen.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 class HomeDrawer extends StatefulWidget {
   const HomeDrawer({super.key});
@@ -18,7 +14,8 @@ class HomeDrawer extends StatefulWidget {
 
 class _HomeDrawerState extends State<HomeDrawer> {
   String? loginBanner = "로그인";
-  String? nickname = "익명의 유저";
+  String defaultNickname = "익명";
+  String? nickname = "???";
   List<Uint8List> profileImage = [];
   String? token;
   String defaultProfile = "asset/img/default_profile.jpeg";
@@ -45,10 +42,12 @@ class _HomeDrawerState extends State<HomeDrawer> {
       if (token != null){
         var data = await UserProfile.getUserProfile();
         nickname = data['nickname'];
-        profileImage = data['profile'];
+        profileImage = data['image'];
+        print("성공?");
       }
     }catch(e){
-      nickname = "익명의 유저";
+      print("error");
+      nickname = defaultNickname;
       profileImage = [];
     }
     setState(() {
@@ -129,8 +128,6 @@ class _HomeDrawerState extends State<HomeDrawer> {
                             ListTile(
                               onTap: () {
                                 if(isLogined()){
-                                  CustomDialog.showCustomDialog(context, "로그인", "로그인이 필요합니다.");
-                                }else{
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (context) => ProfileModifyPage(
@@ -138,6 +135,8 @@ class _HomeDrawerState extends State<HomeDrawer> {
                                         profileImage: profileImage,
                                       ))
                                   );
+                                }else{
+                                  CustomDialog.showCustomDialog(context, "로그인", "로그인이 필요합니다.");
                                 }
                               },
                               leading: Icon(

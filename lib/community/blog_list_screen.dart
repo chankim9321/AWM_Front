@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:mapdesign_flutter/community/blog_create_screen.dart';
 import 'package:mapdesign_flutter/community/search_screen.dart';
 import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
-import 'package:mapdesign_flutter/community/chat.dart';
+import 'package:mapdesign_flutter/community/realchat.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/app_colors.dart';
@@ -49,17 +49,21 @@ class _BlogListScreenState extends State<BlogListScreen> {
   bool isLoading = false;
   List<Post> dataList = [];
 
+
+  Future<void> _initData() async{
+    await fetchData();
+  }
   @override
   void initState() {
     super.initState();
-    fetchData();
+    _initData();
     _refreshController = RefreshController(initialRefresh: false);
     _scrollController.addListener(_scrollListener);
   }
 
   Future<void> _refresh() async {
     try {
-      List<Post> newTodos = await getTodo(widget.locationId, currentPage);
+      List<Post> newTodos = await getPostList(widget.locationId, currentPage);
       print('currentPage');
       print(currentPage);
       if (newTodos.isNotEmpty) {
@@ -75,7 +79,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
     try {
       if (!isLoading) {
         isLoading = true;
-        List<Post> newTodos = await getTodo(widget.locationId, currentPage+1);
+        List<Post> newTodos = await getPostList(widget.locationId, currentPage+1);
         if (newTodos.isNotEmpty) {
           dataList.addAll(newTodos);
           _streamController.add(dataList);
@@ -88,7 +92,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
     }
   }
 
-  Future<List<Post>> getTodo(int locationId, int page) async {
+  Future<List<Post>> getPostList(int locationId, int page) async {
     String original = 'http://$baseUrl';
     String sub = "/board/paging/$locationId?page=$page";
     String url = original + sub;
@@ -96,10 +100,12 @@ class _BlogListScreenState extends State<BlogListScreen> {
     print(url);
     List<Post> list = [];
     try {
+      print(url);
       final response = await client.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        final todos = json.decode(utf8.decode(response.bodyBytes))["content"];
-        todos.forEach((todo) {
+        final postList = json.decode(utf8.decode(response.bodyBytes))["content"];
+        print(postList.length);
+        postList.forEach((todo) {
           try {
             list.add(Post.fromJson(todo));
           } catch (e) {
@@ -107,9 +113,11 @@ class _BlogListScreenState extends State<BlogListScreen> {
           }
         });
       } else {
+        print("error: ${response.statusCode}");
         throw Exception("Failed to load todos");
       }
     } catch (e) {
+      print("error");
       throw Exception("Error while fetching todos");
     } finally {
       client.close();
@@ -156,7 +164,6 @@ class _BlogListScreenState extends State<BlogListScreen> {
 
             ClipRRect(
               borderRadius: BorderRadius.circular(20.0),
-
               child: image != null
                   ? Image.memory(
                 image,
@@ -281,19 +288,13 @@ class _BlogListScreenState extends State<BlogListScreen> {
                 child: StreamBuilder(
                   stream: _streamController.stream,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else {
-                      return ListView.builder(
-                        controller: _scrollController,
-                        itemCount: snapshot.data.length,
-                        itemBuilder: (context, index) {
-                          return _buildListTile(snapshot, index);
-                        },
-                      );
-                    }
+                    return ListView.builder(
+                      controller: _scrollController,
+                      itemCount: dataList.length,
+                      itemBuilder: (context, index) {
+                        return _buildListTile(snapshot, index);
+                      },
+                    );
                   },
                 ),
               ),
@@ -341,7 +342,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChatScreen(locationId: widget.locationId),
+                  builder: (context) => ChatScreen(locationId: widget.locationId, nickName: 'sucker',),
                 ),
               );
             }

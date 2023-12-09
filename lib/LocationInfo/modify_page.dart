@@ -37,7 +37,6 @@ class _ModifyScreenState extends State<ModifyScreen> {
       _controller = quill.QuillController.basic();
     });
   }
-
   /*Future<void> _fetchDataFromBackend() async { //토큰없이도 볼 수 있음 , 무슨내용 썻는지 확인용 수정은 아직 안됨
     try {
       final response = await http.get(
@@ -74,9 +73,6 @@ class _ModifyScreenState extends State<ModifyScreen> {
     }
   }
 */
-
-
-
   Future<void> _saveDocument() async {
     if (_controller == null) return;
     final String plainText = _controller!.document.toPlainText();

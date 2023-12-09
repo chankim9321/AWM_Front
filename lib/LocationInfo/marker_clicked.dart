@@ -18,15 +18,20 @@ class MarkerClicked extends StatefulWidget {
 class _MarkerClickedState extends State<MarkerClicked> {
   List<Uint8List> imagePaths = [];
   String title = '';
+  String defaultImagePath = "asset/img/default_location_image.webp";
   int currentPage = 0;
   final double imageWidth = 60.0; // 이미지 너비
   final double imageHeight = 60.0; // 이미지 높이
   final double padding = 8.0; // 패딩
 
+  void debug(String text){
+    print(text);
+  }
   void _loadImages() async {
     var locationData = await LocationClicked.clickLocation(widget.latitude, widget.longitude, widget.category);
     setState(() {
       title = locationData['title'];
+      print(title);
       imagePaths = locationData['images'];
     });
   }
@@ -40,7 +45,15 @@ class _MarkerClickedState extends State<MarkerClicked> {
   Widget build(BuildContext context) {
     // 디바이스 너비 계산
     final deviceWidth = MediaQuery.of(context).size.width;
+    final ImageProvider image;
 
+    if(imagePaths.isEmpty){
+      image = AssetImage(defaultImagePath);
+      print('머여');
+    }else{
+      image = MemoryImage(imagePaths[0]);
+      print('시발');
+    }
     // 표시할 수 있는 이미지의 최대 개수 계산
     int maxImages = (deviceWidth / (imageWidth + padding * 2)).floor();
     if (maxImages > imagePaths.length) {
@@ -73,17 +86,15 @@ class _MarkerClickedState extends State<MarkerClicked> {
         itemBuilder: (context, index) {
           return Stack(
             children: [
+
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: MemoryImage(imagePaths[index]),
+                    image: image,
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
-              // Container(
-              //   color: Colors.black.withOpacity(0.5),
-              // ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -105,45 +116,45 @@ class _MarkerClickedState extends State<MarkerClicked> {
                           ),
                         ),
                         SizedBox(height: 20.0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            for (int i = 0; i < maxImages-1; i++)
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Image.memory(
-                                    imagePaths[(i + currentPage) % imagePaths.length],
-                                    width: imageWidth,
-                                    height: imageHeight,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            if (imagePaths.length > maxImages)
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: Container(
-                                    width: imageWidth,
-                                    height: imageHeight,
-                                    color: Colors.grey,
-                                    child: Center(
-                                      child: Text(
-                                        '+${imagePaths.length - maxImages}',
-                                        style: TextStyle(
-                                          fontSize: 18.0,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
+                        // Row(
+                        //   mainAxisAlignment: MainAxisAlignment.center,
+                        //   children: [
+                        //     for (int i = 0; i < maxImages-1; i++)
+                        //       Padding(
+                        //         padding: const EdgeInsets.all(8.0),
+                        //         child: ClipRRect(
+                        //           borderRadius: BorderRadius.circular(10.0),
+                        //           child: Image.memory(
+                        //             imagePaths[(i + currentPage) % imagePaths.length],
+                        //             width: imageWidth,
+                        //             height: imageHeight,
+                        //             fit: BoxFit.cover,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     if (imagePaths.length > maxImages)
+                        //       Padding(
+                        //         padding: const EdgeInsets.all(8.0),
+                        //         child: ClipRRect(
+                        //           borderRadius: BorderRadius.circular(10.0),
+                        //           child: Container(
+                        //             width: imageWidth,
+                        //             height: imageHeight,
+                        //             color: Colors.grey,
+                        //             child: Center(
+                        //               child: Text(
+                        //                 '+${imagePaths.length - maxImages}',
+                        //                 style: TextStyle(
+                        //                   fontSize: 18.0,
+                        //                   color: Colors.white,
+                        //                 ),
+                        //               ),
+                        //             ),
+                        //           ),
+                        //         ),
+                        //       ),
+                        //   ],
+                        // ),
                         SizedBox(height: 16.0),
                         SafeArea(
                           child: Container(
@@ -175,7 +186,7 @@ class _MarkerClickedState extends State<MarkerClicked> {
                                   size: 40.0,
                                 ),
                                 label: Text(
-                                  "More Detailed Here!",
+                                  "자세히 알아보기",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
