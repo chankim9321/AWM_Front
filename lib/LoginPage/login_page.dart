@@ -139,14 +139,14 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
                       Text(
-                        'Forgot your login details?',
+                        '로그인 정보를 잊어버렸나요?',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                         )
                       ),
                       Text(
-                        ' Get help logging in.',
+                        ' 도움을 요청하세요! ',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,

@@ -28,17 +28,13 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
 
   Future<void> _fetchDataFromBackend() async {
     try {
-      print('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage');
       final response = await http.get(
-        Uri.parse('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage'),//paging과 ?page사이에는 {locationid}가 들어가야함
+        Uri.parse('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage'),
       );
-
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final data = json.decode(decodedBody);
-
         final logs = data['content'] as List;
-
         for (var log in logs) {
           final id = log['id'];
           final nickName = log['nickName'];

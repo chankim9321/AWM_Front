@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
+import 'package:mapdesign_flutter/components/customDialog.dart';
 
 String baseUrl = ServerConf.url;
 

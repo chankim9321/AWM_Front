@@ -6,7 +6,7 @@ import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import 'package:mapdesign_flutter/community/chat.dart';
+import 'package:mapdesign_flutter/community/realchat.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/community/comment.dart';

@@ -8,9 +8,9 @@ class UserProfile{
   static getUserProfile() async {
     String? token = await SecureStorage().readSecureData("token");
     final response = await http.get(
-        Uri.parse("http://${ServerConf.url}/"),
+        Uri.parse("http://${ServerConf.url}/user/profile"),
         headers: <String, String>{
-          'Content-Type': 'application/json',
+          'Content-Type' : 'application/json',
           'Authorization' : token!,
         }
     );
@@ -24,6 +24,7 @@ class UserProfile{
       };
     } else {
       // 오류 처리
+      print("error ${ response.statusCode}");
       throw Exception("Failed to load user data");
     }
   }

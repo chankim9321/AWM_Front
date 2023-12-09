@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/LoginPage/introduction_page_2.dart';
 import 'package:mapdesign_flutter/LoginPage/introduction_page_3.dart';
 import 'package:mapdesign_flutter/LoginPage/login_page.dart';
 import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:mapdesign_flutter/LoginPage/introduction_page_1.dart';
+import 'package:mapdesign_flutter/Screen/home_screen.dart';
 
 class LoginModule extends StatefulWidget {
   const LoginModule({Key? key}) : super(key: key);
@@ -17,6 +19,26 @@ class _LoginModuleState extends State<LoginModule> {
   final CarouselController _carouselController = CarouselController();
   int _current = 0;
   late List<Widget> widgetList;
+  String? token;
+  bool? isLogined;
+  Future<void> _setToken() async {
+    token = await SecureStorage().readSecureData('token');
+  }
+  Future<void> _checkLogined() async {
+    if(token != null){
+      isLogined = true;
+    }
+    else {
+      isLogined = false;
+    }
+  }
+  Future<void> _init() async{
+    await _setToken();
+    await _checkLogined();
+    if(isLogined!){
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
+    }
+  }
   @override
   void initState() {
     // TODO: implement initState
@@ -28,6 +50,7 @@ class _LoginModuleState extends State<LoginModule> {
       IntroductionThirdPage(setLastPage: _setLastPage),
       LoginPage(),
     ];
+    _init();
   }
   // skip 버튼을 눌렀을 때 마지막 페이지로 이동
   void _setLastPage(){
