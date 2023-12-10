@@ -16,11 +16,11 @@ class UserProfile{
     );
     if (response.statusCode == 200) {
       var data = jsonDecode(utf8.decode(response.bodyBytes));
-      String nickname = data["nickname"];
-      Uint8List profile = base64Decode(data["profile"]);
+      String nickname = data["nickName"];
+      Uint8List profile = base64Decode(data["image"]);
       return {
-        "nickname": nickname,
-        "profile": profile
+        "nickName": nickname,
+        "image": profile
       };
     } else {
       // 오류 처리

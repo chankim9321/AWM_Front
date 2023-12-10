@@ -6,7 +6,8 @@ import 'package:mapdesign_flutter/LoginPage/login_page.dart';
 import 'package:carousel_slider/carousel_controller.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:mapdesign_flutter/LoginPage/introduction_page_1.dart';
-import 'package:mapdesign_flutter/Screen/home_screen.dart';
+import 'package:mapdesign_flutter/Screen/google_map_screen.dart';
+
 
 class LoginModule extends StatefulWidget {
   const LoginModule({Key? key}) : super(key: key);
@@ -36,7 +37,7 @@ class _LoginModuleState extends State<LoginModule> {
     await _setToken();
     await _checkLogined();
     if(isLogined!){
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Test()));
     }
   }
   @override

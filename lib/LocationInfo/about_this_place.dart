@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
+import 'package:mapdesign_flutter/components/customDialog.dart';
 
 class AboutThisPlace extends StatefulWidget {
   const AboutThisPlace({super.key, required this.locationId});
@@ -13,6 +14,7 @@ class AboutThisPlace extends StatefulWidget {
 
 class _AboutThisPlaceState extends State<AboutThisPlace> {
   int currentPage = 0;
+  bool isExist = false;
   late final String? token;
   List<Map<String, dynamic>> contentList = [];
 
@@ -25,16 +27,20 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
   void _setToken() async{
     token = await SecureStorage().readSecureData('token');
   }
-
   Future<void> _fetchDataFromBackend() async {
     try {
+      print('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage');
       final response = await http.get(
         Uri.parse('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        }
       );
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final data = json.decode(decodedBody);
         final logs = data['content'] as List;
+        isExist = true;
         for (var log in logs) {
           final id = log['id'];
           final nickName = log['nickName'];
@@ -45,7 +51,11 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
             contentList.add({'id': id, 'nickName': nickName, 'content': content, 'likeCount': likeCount, 'badCount': badCount});
           });
         }
-      } else {
+      } else if(response.statusCode == 204){
+        isExist = false;
+        print("컨텐츠 없음");
+      }
+      else {
         print('API 호출 실패: ${response.statusCode}');
       }
       currentPage++;
@@ -154,17 +164,26 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text('About this place'),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
-            onPressed: _fetchDataFromBackend,
+            onPressed: () {
+              if(token!.isNotEmpty){
+                _fetchDataFromBackend();
+              }else{
+                CustomDialog.showCustomDialog(context, "정보 업데이트", "로그인이 필요합니다.");
+              }
+            },
           ),
         ],
       ),
-      body: ListView.builder(
+      body: !isExist
+          ? Center(child: Text("여러분이 알고있는 정보를 입력해주세요!"),)
+          : ListView.builder(
         itemCount: contentList.length,
         itemBuilder: (BuildContext context, int index) {
           return Column(
@@ -227,7 +246,6 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
                   ],
                 ),
               ),
-              SizedBox(height: 5),
               Container(
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(

@@ -1,19 +1,20 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-import 'package:mapdesign_flutter/community/blog_create_screen.dart';
+import 'package:mapdesign_flutter/community/post_create_screen.dart';
 import 'package:mapdesign_flutter/community/search_screen.dart';
-import 'package:mapdesign_flutter/community/blog_detail_screen.dart';
-import 'package:mapdesign_flutter/community/realchat.dart';
+import 'package:mapdesign_flutter/community/socket_chat.dart';
+import 'package:mapdesign_flutter/user_info.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/app_colors.dart';
-import 'package:mapdesign_flutter/community/detail.dart';
+import 'package:mapdesign_flutter/community/post_detailed_screen.dart';
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
 
-String imageFilePath = 'asset/img/tower_image.jpeg';
 String baseUrl = '${ServerConf.url}';
 
 class Post {
@@ -49,7 +50,6 @@ class _BlogListScreenState extends State<BlogListScreen> {
   bool isLoading = false;
   List<Post> dataList = [];
 
-
   Future<void> _initData() async{
     await fetchData();
   }
@@ -60,26 +60,42 @@ class _BlogListScreenState extends State<BlogListScreen> {
     _refreshController = RefreshController(initialRefresh: false);
     _scrollController.addListener(_scrollListener);
   }
-
-  Future<void> _refresh() async {
+  // 위로 스크롤 했을 때, 최신글이 불러오게끔 설정
+  void _refresh() async {
     try {
-      List<Post> newTodos = await getPostList(widget.locationId, currentPage);
+      List<Post> newPost = await getPostList(widget.locationId, currentPage);
       print('currentPage');
       print(currentPage);
-      if (newTodos.isNotEmpty) {
-        dataList.insertAll(0, newTodos);
+      if (newPost.isNotEmpty) {
+        dataList.insertAll(0, newPost);
         _streamController.add(dataList);
       }
     } catch (e) {
       print('Error: $e');
     }
+    _refreshController.refreshCompleted();
   }
-
+  // 아래로 스크롤 했을 때, 과거글이 불러오게끔 설정
+  void _loading() async {
+    try {
+      currentPage++;
+      List<Post> newPost = await getPostList(widget.locationId, currentPage);
+      print('currentPage');
+      print(currentPage);
+      if (newPost.isNotEmpty) {
+        dataList.insertAll(dataList.length, newPost);
+        _streamController.add(dataList);
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+    _refreshController.loadComplete();
+  }
   Future<void> fetchData() async {
     try {
       if (!isLoading) {
         isLoading = true;
-        List<Post> newTodos = await getPostList(widget.locationId, currentPage+1);
+        List<Post> newTodos = await getPostList(widget.locationId, currentPage);
         if (newTodos.isNotEmpty) {
           dataList.addAll(newTodos);
           _streamController.add(dataList);
@@ -126,13 +142,13 @@ class _BlogListScreenState extends State<BlogListScreen> {
   }
 
   Widget _buildListTile(AsyncSnapshot snapshot, int index) {
+    String imageFilePath = 'asset/img/default.png';
     int id = snapshot.data[index].postId;
     String title = snapshot.data[index].boardTitle;
     String content = snapshot.data[index].boardContent;
     Uint8List? image = snapshot.data[index].image;
     int likes = snapshot.data[index].likeCount;
     int comment = snapshot.data[index].commentCount;
-
     return Card(
       child: InkWell(
         onTap: () {
@@ -147,21 +163,6 @@ class _BlogListScreenState extends State<BlogListScreen> {
         },
         child: Row(
           children: [
-            /*ClipRRect(
-              borderRadius: BorderRadius.circular(20.0),
-              child: image != null
-                  ? Image.memory(
-                image,
-                width: 100,
-                height: 100,
-              )
-                  : Placeholder(
-                // Placeholder for cases where image is null or invalid
-                fallbackHeight: 100,
-                fallbackWidth: 100,
-              ),
-            ),*/
-
             ClipRRect(
               borderRadius: BorderRadius.circular(20.0),
               child: image != null
@@ -169,21 +170,14 @@ class _BlogListScreenState extends State<BlogListScreen> {
                 image,
                 width: 100,
                 height: 100,
+                fit: BoxFit.cover,
               )
-              // /*
-                  : imageFilePath != null
-                  ? Image.asset(
+                  : Image.asset(
                 imageFilePath,
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover, // Adjust the fit based on your requirement
               )
-              // */ 실행안해봄
-                  : Placeholder(
-                // Placeholder for cases where image is null or invalid
-                fallbackHeight: 100,
-                fallbackWidth: 100,
-              ),
             ),
             Expanded(
               child: Padding(
@@ -249,9 +243,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
       fetchData();
     }
   }
-
   RefreshController _refreshController = RefreshController(initialRefresh: false);
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -283,8 +275,10 @@ class _BlogListScreenState extends State<BlogListScreen> {
             Flexible(
               child: SmartRefresher(
                 enablePullUp: true,
+                enablePullDown: true,
                 controller: _refreshController,
-                onLoading: _refresh,
+                onRefresh: _refresh, // 위로 스크롤
+                onLoading: _loading, // 아래로 스크롤
                 child: StreamBuilder(
                   stream: _streamController.stream,
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -342,7 +336,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChatScreen(locationId: widget.locationId, nickName: 'sucker',),
+                  builder: (context) => ChatScreen(locationId: widget.locationId, nickName: UserInfo.userNickname,),
                 ),
               );
             }

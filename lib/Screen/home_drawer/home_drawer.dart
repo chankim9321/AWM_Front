@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:mapdesign_flutter/APIs/UserAPIs/user_profile.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/LoginPage/login_module.dart';
+import 'package:mapdesign_flutter/Screen/category_selector.dart';
 import 'package:mapdesign_flutter/Screen/home_drawer/profile_modify.dart';
+import 'package:mapdesign_flutter/Screen/recommended_user_screen.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
+import 'package:mapdesign_flutter/user_info.dart';
 class HomeDrawer extends StatefulWidget {
   const HomeDrawer({super.key});
 
@@ -14,9 +17,9 @@ class HomeDrawer extends StatefulWidget {
 
 class _HomeDrawerState extends State<HomeDrawer> {
   String? loginBanner = "로그인";
-  String defaultNickname = "익명";
+  String defaultNickname = "익명의 유저";
   String? nickname = "???";
-  List<Uint8List> profileImage = [];
+  Uint8List profileImage = Uint8List(0);
   String? token;
   String defaultProfile = "asset/img/default_profile.jpeg";
 
@@ -30,25 +33,11 @@ class _HomeDrawerState extends State<HomeDrawer> {
   Future<void> _checkLogined() async{
     if (token != null){
       loginBanner = "로그아웃";
+      nickname = UserInfo.userNickname;
+      profileImage = UserInfo.profileImage;
     }else{
       loginBanner = "로그인";
-    }
-    setState(() {
-
-    });
-  }
-  Future<void> _loadUserProfile() async {
-    try{
-      if (token != null){
-        var data = await UserProfile.getUserProfile();
-        nickname = data['nickname'];
-        profileImage = data['image'];
-        print("성공?");
-      }
-    }catch(e){
-      print("error");
       nickname = defaultNickname;
-      profileImage = [];
     }
     setState(() {
 
@@ -60,7 +49,6 @@ class _HomeDrawerState extends State<HomeDrawer> {
   Future<void> _initializeAsync() async {
     await _setToken(); // _setToken()이 완료될 때까지 기다림
     await _checkLogined();
-    await _loadUserProfile();
   }
 
   @override
@@ -72,9 +60,10 @@ class _HomeDrawerState extends State<HomeDrawer> {
   @override
   Widget build(BuildContext context) {
     ImageProvider backgroundImage;
+    backgroundImage = AssetImage(defaultProfile);
 
-    if (profileImage.isNotEmpty && profileImage[0] is Uint8List) {
-      backgroundImage = MemoryImage(profileImage[0]);
+    if (profileImage.isNotEmpty) {
+      backgroundImage = MemoryImage(profileImage);
     } else {
       backgroundImage = AssetImage(defaultProfile);
     }
@@ -152,6 +141,34 @@ class _HomeDrawerState extends State<HomeDrawer> {
                                 color: Colors.white,
                               ),
                               title: Text("랭킹", style: TextStyle(color: Colors.white),),
+                            ),
+                            ListTile(
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return CategorySelector(); // Your custom widget
+                                  },
+                                );
+                              },
+                              leading: Icon(
+                                Icons.list_alt_outlined,
+                                color: Colors.white,
+                              ),
+                              title: Text("관심목록 추천", style: TextStyle(color: Colors.white),),
+                            ),
+                            ListTile(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => RecommendUserScreen())
+                                );
+                              },
+                              leading: Icon(
+                                Icons.list_alt_outlined,
+                                color: Colors.white,
+                              ),
+                              title: Text("유저 추천", style: TextStyle(color: Colors.white),),
                             ),
                             ListTile(
                               onTap: () {},

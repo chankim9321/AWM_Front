@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
+import 'package:mapdesign_flutter/Screen/google_map_screen.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/LoginPage/register_page.dart';
 import 'package:mapdesign_flutter/Screen/home_screen.dart';
@@ -51,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
         storage.writeSecureData("token", accessToken);
 
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Test()));
       }else{
         // error handling required
         CustomDialog.showCustomDialog(context, "로그인 실패!", "ID 또는 Password가 잘못 되었습니다.");
@@ -75,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
     // 인디케이터를 닫기
     Navigator.of(context, rootNavigator: true).pop();
 
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen()));
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Test()));
     // 메인페이지로 이동
   }
   @override

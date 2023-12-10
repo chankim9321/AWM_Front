@@ -2,14 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/LocationInfo/place_component/sns_ui_heart_icon_screen.dart';
+import 'package:mapdesign_flutter/Screen/locationRegister/location_recommend.dart';
+import 'package:mapdesign_flutter/APIs/LocationAPIs/location_down.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/community/content.dart';
+import 'package:mapdesign_flutter/user_info.dart';
 import 'modify_page.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'about_this_place.dart';
-
-import 'package:mapdesign_flutter/community/blog_list_screen.dart';
-import 'package:mapdesign_flutter/community/realchat.dart';
+import 'package:mapdesign_flutter/Screen/google_map_screen.dart';
+import 'package:mapdesign_flutter/components/customDialog.dart';
+import 'package:mapdesign_flutter/community/post_list_screen.dart';
+import 'package:mapdesign_flutter/community/socket_chat.dart';
 class DetailScreen extends StatefulWidget {
   const DetailScreen({super.key, required this.locationId, required this.imagePaths, required this.locationName});
   final List<Uint8List> imagePaths;
@@ -49,11 +53,43 @@ class _DetailScreenState extends State<DetailScreen> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.border_color),
+            tooltip: "정보 갱신",
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ModifyScreen(locationId: widget.locationId,)),
               );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.thumb_up_alt_outlined),
+            tooltip: "추천 또는 사진 갱신",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LocationRecommend(
+                    locationId: widget.locationId,
+                    locationName: widget.locationName)
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.thumb_down_alt_outlined),
+            tooltip: "비추천 또는 점수 감소",
+            onPressed: () {
+              try{
+                LocationDown.disapproveLocation(widget.locationId);
+                CustomDialog.showCustomDialog(context, "장소 비추천", "장소 비추천이 성공적으로 수행되었습니다.");
+              }catch(e){
+                CustomDialog.showCustomDialog(context, "장소 비추천", "장소 비추천에 실패했습니다!");
+              }finally{
+                Navigator.pushAndRemoveUntil(
+                    context, MaterialPageRoute(
+                    builder: (context) => Test()
+                ), (Route<dynamic> route) => false
+                );
+              }
             },
           ),
         ],
@@ -140,7 +176,7 @@ class _DetailScreenState extends State<DetailScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ChatScreen(locationId: widget.locationId, nickName: 'sucker',),
+                                    builder: (context) => ChatScreen(locationId: widget.locationId, nickName: UserInfo.userNickname,),
                                   ),
                                 )
                               }

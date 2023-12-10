@@ -10,12 +10,13 @@ import 'package:mapdesign_flutter/Screen/home_screen.dart';
 import 'package:mapdesign_flutter/Screen/locationRegister/location_writer_form.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
+import 'package:mapdesign_flutter/user_info.dart';
 
 class ProfileModifyPage extends StatefulWidget {
   const ProfileModifyPage({super.key, required this.profileImage, required this.nickname});
 
   final String nickname;
-  final List<Uint8List> profileImage;
+  final Uint8List profileImage;
 
   @override
   State<ProfileModifyPage> createState() => _ProfileModifyPageState();
@@ -38,13 +39,14 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
     token = await SecureStorage().readSecureData("token");
   }
   Future<bool> updateProfile(String nickname, Uint8List? imageData) async {
-    var uri = Uri.parse('http://${ServerConf.url}/'); // 서버 API 주소
+    var uri = Uri.parse('http://${ServerConf.url}/user/edit/profile'); // 서버 API 주소
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Authorization" : token!,
     };
     Map<String, dynamic> body = {
-      'nickname': nickname,
+      'nickName': nickname,
+      'image' : null,
     };
     if (imageData != null) {
       String base64Image = base64Encode(imageData);
@@ -66,9 +68,9 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
   }
   Future<void> _updateProfile() async {
     try {
+      CircularProgressIndicator();
       // 닉네임 데이터 준비
       String nickname = _textController.text;
-
       // 이미지 데이터 준비
       Uint8List? imageData;
       if (_image != null) {
@@ -76,12 +78,16 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
         imageData = await File(_image!.path).readAsBytes();
       } else if (widget.profileImage.isNotEmpty) {
         // 기존 이미지를 유지하는 경우
-        imageData = widget.profileImage.first;
+        imageData = widget.profileImage;
       }
       // API 요청 수행 (updateProfile 함수는 예시입니다)
       bool success = await updateProfile(nickname, imageData);
       if (success) {
         // 성공적으로 처리되었을 때의 로직
+        UserInfo.userNickname = nickname;
+        if(imageData != null){
+          UserInfo.profileImage =imageData!;
+        }
         CustomDialog.showCustomDialog(context, "프로필수정", "프로필이 수정되었습니다!");
       } else {
         // 실패했을 때의 로직
@@ -92,11 +98,8 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
       CustomDialog.showCustomDialog(context, "프로필수정", "오류가 발생했습니다: $e");
     } finally {
       // 최종적으로 홈 화면으로 이동
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-            (Route<dynamic> route) => false,
-      );
+      Navigator.pop(context);
+      Navigator.pop(context);
     }
   }
   Future getImage(ImageSource imageSource) async {
@@ -116,7 +119,7 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
       child: _image != null
           ? Image.file(File(_image!.path)) // 사용자가 선택한 새 이미지를 표시
           : (widget.profileImage.isNotEmpty
-          ? Image.memory(widget.profileImage.first) // 상위 위젯에서 제공된 이미지를 표시
+          ? Image.memory(widget.profileImage) // 상위 위젯에서 제공된 이미지를 표시
           : Container(color: Colors.grey)), // 기본 이미지를 표시
     );
   }
@@ -145,8 +148,8 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.camera_alt_outlined),
-                  Text(" 앨범에서 가져오기")
+                  Icon(Icons.camera_alt_outlined, color: Colors.white,),
+                  Text(" 앨범에서 가져오기", style: TextStyle(color: Colors.white),)
                 ],
               )
           ),
