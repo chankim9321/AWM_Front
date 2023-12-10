@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:mapdesign_flutter/LoginPage/Oauth_login/google_login.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/components/my_button.dart';
 import 'package:mapdesign_flutter/components/my_textfield.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'dart:convert';
 
 import 'package:mapdesign_flutter/components/square_tile.dart';
@@ -46,15 +48,15 @@ class _RegisterPageState extends State<RegisterPage> {
       try {
         // login through http request
         final response = await http.post(
-          Uri.parse('http://172.20.10.6:8080/join'), // api login url
+          Uri.parse('http://${ServerConf.url}/join'), // api login url
           headers: <String, String>{
             'Content-Type': 'application/json',
           },
           body: jsonEncode({
             'userId': idController.text,
             'password': passwordController.text,
-            // 'email': emailController.text,
-            // 'phoneNumber': phoneNumberController.text
+            'email': emailController.text,
+            'phoneNumber': phoneNumberController.text
           }),
         );
         // if response is OK

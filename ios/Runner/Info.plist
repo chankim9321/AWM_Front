@@ -13,6 +13,11 @@
       </dict>
     </array>
     <!--gal: Required -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
     <key>NSPhotoLibraryAddUsageDescription</key>
   	<string>We need add only access to save medias</string>
     <key>NSPhotoLibraryUsageDescription</key>

@@ -7,23 +7,23 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
+import 'package:mapdesign_flutter/user_info.dart';
 
 String baseUrl = ServerConf.url;
 
-Future<void> createPost(String title, String content, String imagePath, String authToken, int locationId) async {
+Future<bool> createPost(String title, String content, String imagePath, String authToken, int locationId) async {
   final Uri endpoint = Uri.parse('http://$baseUrl/user/board/save/$locationId'); // Replace with your actual backend endpoint
 
   // Read JSON file containing title and content
   final Map<String, dynamic> postData = {
     'boardTitle': title,
     'boardContent': content,
-    'boardWriter': 'Lee',
+    'boardWriter': UserInfo.userNickname,
   };
 
   // Create a multipart request
   final http.MultipartRequest request = http.MultipartRequest('POST', endpoint);
   request.headers['Authorization'] = authToken;
-  // Add JSON file part
   request.files.add(http.MultipartFile.fromString(
     'dto', // Assuming your backend expects 'dto' as the key for the JSON file
     jsonEncode(postData),
@@ -40,17 +40,19 @@ Future<void> createPost(String title, String content, String imagePath, String a
       contentType: MediaType('image', 'jpeg'), // Adjust the content type based on your file type
     ));
   }
-
   // Send the request
   try {
     final http.Response response = await http.Response.fromStream(await request.send());
     if (response.statusCode == 200) {
       print('Post created successfully');
+      return true;
     } else {
       print('Failed to create post: ${response.statusCode}');
+      return false;
     }
   } catch (error) {
     print('Error creating post: $error');
+    return false;
   }
 }
 
@@ -142,8 +144,14 @@ class _PostCreationScreenState extends State<PostCreationScreen> {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                createPost(titleController.text, contentController.text, imageFile?.path ?? '', token!, widget.locationId);
+              onPressed: () async {
+                bool res = await createPost(titleController.text, contentController.text, imageFile?.path ?? '', token!, widget.locationId);
+                if(res){
+                  CustomDialog.showCustomDialog(context, "등록 성공", "성공적으로 게시글이 등록되었습니다!");
+                }else{
+                  CustomDialog.showCustomDialog(context, "등록 실패", "게시글을 등록에 실패했습니다.");
+                }
+                Navigator.pop(context);
               },
               child: Text('등록하기'),
               style: ElevatedButton.styleFrom(
@@ -157,7 +165,6 @@ class _PostCreationScreenState extends State<PostCreationScreen> {
       ),
     );
   }
-
   Future<void> pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);

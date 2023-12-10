@@ -15,7 +15,6 @@ class LocationClicked{
       var data = jsonDecode(utf8.decode(response.bodyBytes));
       String title = data["title"];
       List<dynamic> imageBlobs = data["images"];
-
       // Blob 데이터를 Uint8List로 변환합니다.
       List<Uint8List> images = imageBlobs.map<Uint8List>((imageData) {
         return base64Decode(imageData["image"]);

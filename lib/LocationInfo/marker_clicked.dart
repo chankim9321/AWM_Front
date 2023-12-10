@@ -1,10 +1,17 @@
+
 import 'package:flutter/material.dart';
 import 'package:mapdesign_flutter/APIs/LocationAPIs/location_clicked.dart';
 import 'package:mapdesign_flutter/APIs/LocationAPIs/location_detailed.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'place_info.dart';
 import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
+import 'dart:io';
+import 'dart:async';
+import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart';
+
 
 class MarkerClicked extends StatefulWidget {
   const MarkerClicked({super.key, required this.latitude, required this.longitude, required this.category});
@@ -23,44 +30,53 @@ class _MarkerClickedState extends State<MarkerClicked> {
   final double imageWidth = 60.0; // 이미지 너비
   final double imageHeight = 60.0; // 이미지 높이
   final double padding = 8.0; // 패딩
-
-  void debug(String text){
-    print(text);
+  late ImageProvider image;
+  Future<Uint8List> convertImageFileToUint8List(File imageFile) async {
+    Uint8List uint8list = await imageFile.readAsBytes();
+    return uint8list;
   }
-  void _loadImages() async {
+
+  Future<void> _loadImages() async {
     var locationData = await LocationClicked.clickLocation(widget.latitude, widget.longitude, widget.category);
-    setState(() {
-      title = locationData['title'];
-      print(title);
-      imagePaths = locationData['images'];
-    });
+    imagePaths = locationData['images'];
+    if(imagePaths.isEmpty){
+      print("no imagess..");
+      var bytes = await rootBundle.load(defaultImagePath);
+      imagePaths.add(bytes.buffer.asUint8List());
+      setState(() {
+        title = locationData['title'];
+        // image = AssetImage(defaultImagePath);
+        image = MemoryImage(imagePaths[0]);
+      });
+    }else{
+      print("yes images");
+      setState(() {
+        title = locationData['title'];
+        image = MemoryImage(locationData['images'][0]);
+        // image = AssetImage(defaultImagePath);
+      });
+    }
+  }
+  Future<void> _init() async{
+    await _loadImages();
   }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _loadImages();
+    _init();
   }
   @override
   Widget build(BuildContext context) {
     // 디바이스 너비 계산
     final deviceWidth = MediaQuery.of(context).size.width;
-    final ImageProvider image;
 
-    if(imagePaths.isEmpty){
-      image = AssetImage(defaultImagePath);
-      print('머여');
-    }else{
-      image = MemoryImage(imagePaths[0]);
-      print('시발');
-    }
     // 표시할 수 있는 이미지의 최대 개수 계산
     int maxImages = (deviceWidth / (imageWidth + padding * 2)).floor();
     if (maxImages > imagePaths.length) {
       maxImages = imagePaths.length;
     }
     return Scaffold(
-      // backgroundColor: Colors.red,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -82,15 +98,15 @@ class _MarkerClickedState extends State<MarkerClicked> {
           setState(() {
             currentPage = index;
           });
+          print(index);
         },
         itemBuilder: (context, index) {
           return Stack(
             children: [
-
               Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: image,
+                    image: imagePaths.isNotEmpty ? MemoryImage(imagePaths[currentPage]) : image,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -116,45 +132,45 @@ class _MarkerClickedState extends State<MarkerClicked> {
                           ),
                         ),
                         SizedBox(height: 20.0),
-                        // Row(
-                        //   mainAxisAlignment: MainAxisAlignment.center,
-                        //   children: [
-                        //     for (int i = 0; i < maxImages-1; i++)
-                        //       Padding(
-                        //         padding: const EdgeInsets.all(8.0),
-                        //         child: ClipRRect(
-                        //           borderRadius: BorderRadius.circular(10.0),
-                        //           child: Image.memory(
-                        //             imagePaths[(i + currentPage) % imagePaths.length],
-                        //             width: imageWidth,
-                        //             height: imageHeight,
-                        //             fit: BoxFit.cover,
-                        //           ),
-                        //         ),
-                        //       ),
-                        //     if (imagePaths.length > maxImages)
-                        //       Padding(
-                        //         padding: const EdgeInsets.all(8.0),
-                        //         child: ClipRRect(
-                        //           borderRadius: BorderRadius.circular(10.0),
-                        //           child: Container(
-                        //             width: imageWidth,
-                        //             height: imageHeight,
-                        //             color: Colors.grey,
-                        //             child: Center(
-                        //               child: Text(
-                        //                 '+${imagePaths.length - maxImages}',
-                        //                 style: TextStyle(
-                        //                   fontSize: 18.0,
-                        //                   color: Colors.white,
-                        //                 ),
-                        //               ),
-                        //             ),
-                        //           ),
-                        //         ),
-                        //       ),
-                        //   ],
-                        // ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (int i = 0; i < maxImages; i++)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Image.memory(
+                                    imagePaths[(i + currentPage) % imagePaths.length],
+                                    width: imageWidth,
+                                    height: imageHeight,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            if (imagePaths.length > maxImages)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  child: Container(
+                                    width: imageWidth,
+                                    height: imageHeight,
+                                    color: Colors.grey,
+                                    child: Center(
+                                      child: Text(
+                                        '+${imagePaths.length - maxImages}',
+                                        style: TextStyle(
+                                          fontSize: 18.0,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                         SizedBox(height: 16.0),
                         SafeArea(
                           child: Container(

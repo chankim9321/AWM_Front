@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
@@ -15,6 +16,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
+import 'package:mapdesign_flutter/user_info.dart';
+import 'package:path_provider/path_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,44 +30,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   latLng.LatLng? currentLocation;
   bool highlightMarker = false;
   bool toggleAimPoint = false;
-  List<CircleMarker> circles = [];
   double zoom = 15.0;
   List<MarkerModel> markerList = [];
   List<double> radius = [0, 200, 400, 600, 800, 1000];
   int radiusIndex = 2;
-  List<Uint8List> profileImage = [];
   String? token;
   String imagePath = "asset/img/default_profile.jpeg";
 
-  Future<void> _saveProfileImage() async {
-    if(_isTokenAvailable()){
-      try{
-        if (token != null){
-          var data = await UserProfile.getUserProfile();
-          profileImage = data['profile'];
 
-          imagePath = "asset/img/user_profile.png";
-          File imageFile = File(imagePath);
-          await imageFile.writeAsBytes(profileImage[0]);
-        }
-      }catch(e){
-        profileImage = [];
-      }
+  Future<void> _saveProfileImage() async {
+    try{
+      var data = await UserProfile.getUserProfile();
+      UserInfo.userNickname = data['nickName'];
+      UserInfo.profileImage = data['image'];
+    }catch(e){ // 존재하지 않을 때
+      print("failed to load data");
+      UserInfo.userNickname = "익명의 유저";
+      UserInfo.profileImage = Uint8List(0);
     }
   }
   Future<void> _initializeAsync() async {
     await _setToken(); // _setToken()이 완료될 때까지 기다림
-    await _saveProfileImage();
+    await _saveProfileImage(); // 유저 프로필
   }
-
   Future<void> _setToken() async {
     token = await SecureStorage().readSecureData('token');
-  }
-  bool _isTokenAvailable() {
-    if(token != null){
-      return true;
-    }
-    return false;
   }
   void increaseRadiusIndex(){
     setState(() {
@@ -135,8 +125,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
   getCoordinates() {
     var center = mapController.mapController.camera.center; // 지도의 중앙 위치 가져오기
-    print(center.latitude);
-    print(center.longitude);
   }
   void loadMarkerList() async{
     try{
@@ -148,9 +136,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
     }catch(e){
       // CustomDialog.showCustomDialog(context, "위치 불러오기", "위치정보를 불러오는데 실패했습니다! 네트워크 상태를 확인해주세요.");
-    }
-    for (var element in markerList) {
-      print(element.category);
     }
   }
 
@@ -165,13 +150,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         // current position
         Marker(
             point: currentLocation!,
-            width: 60,
-            height: 60,
+            width: 40,
+            height: 40,
             child: CustomMarkerIcon(
               longitude: currentLocation!.longitude,
               latitude: currentLocation!.latitude,
               isPlace: false,
-              imagePath: imagePath,
+              imagePath: UserInfo.profileImage.isEmpty
+                ? imagePath
+                : "",
+              imageData: UserInfo.profileImage, // 로그인 안하면 빈 배열 반환
               size: Size(400.0, 400.0),
             ),
         ),
@@ -180,20 +168,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         markers.add(
           Marker(
             point: latLng.LatLng(element.latitude, element.longitude),
-            width: 60,
-            height: 60,
+            width: 40,
+            height: 40,
             child: CustomMarkerIcon(
               latitude: element.latitude,
               longitude: element.longitude,
               category: element.category,
               isPlace: true,
+              imageData: UserInfo.profileImage,
               imagePath: LocationCategoryPath.categoryPath[element.category]!,
               size: Size(400, 400),
             )
           )
         );
       }
-
     }
     var appBar = AppBar(
       title: Container(
@@ -246,10 +234,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.app',
-              ),
-              CircleLayer(
-                circles: circles,
+                userAgentPackageName: 'com.example.mapdesign_flutter',
               ),
               MarkerLayer(
                 markers: markers,
@@ -268,90 +253,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
         ],
       ),
-      floatingActionButton: Stack(
-       children: [
-         Positioned(
-           bottom: 10.0,
-           right: 10.0,
-           child: FloatingActionButton(
-             onPressed: () => {
-               setFocusOnCurrentLocation()
-             },
-             backgroundColor: AppColors.instance.skyBlue,
-             child: Icon(
-               Icons.my_location,
-               color: AppColors.instance.white,
-             ),
-           ),
-         ),
-         Positioned(
-           bottom: 80.0,
-           right: 10.0,
-           child: FloatingActionButton(
-             onPressed: () {
-               setShowAimPoint();
-           },
-             backgroundColor: AppColors.instance.skyBlue,
-             child: Icon(
-               toggleAimPoint ? Icons.close : Icons.add,
-               color: AppColors.instance.white,
-             ),
-           ),
-         ),
-         Positioned(
-           bottom: 150.0,
-           right: 10.0,
-           child: FloatingActionButton(
-             onPressed: () => {
-               showModalBottomSheet(
-                 context: context,
-                 builder: (BuildContext context) {
-                   return LocationCategory(
-                       latitude: mapController.mapController.camera.center.latitude,
-                       longitude: mapController.mapController.camera.center.longitude,
-                   ); // Your custom widget
-                 },
-               )
-             },
-             backgroundColor: AppColors.instance.skyBlue,
-             child: Icon(
-               Icons.add_location,
-               color: AppColors.instance.white,
-             ),
-           ),
-         ),
-         Positioned(
-           bottom: 220.0,
-           right: 10.0,
-           child: FloatingActionButton(
-             onPressed: () {
-               mapController.animatedZoomOut();
-               increaseRadiusIndex();
-             },
-             backgroundColor: AppColors.instance.skyBlue,
-             child: Icon(
-               Icons.remove,
-               color: AppColors.instance.white,
-             ),
-          ),
-         ),
-         Positioned(
-           bottom: 290.0,
-           right: 10.0,
-           child: FloatingActionButton(
-             onPressed: () {
-               mapController.animatedZoomIn();
-               decreaseRadiusIndex();
-             },
-             backgroundColor: AppColors.instance.skyBlue,
-             child: Icon(
-               Icons.add,
-               color: AppColors.instance.white,
-             ),
-           )
-         )
-       ],
-      )
     );
   }
 }

@@ -125,7 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('실시간 채팅'),
+        title: Text('채팅방'),
       ),
       body: Column(
         children: <Widget>[

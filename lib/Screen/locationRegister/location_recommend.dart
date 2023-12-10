@@ -12,23 +12,22 @@ import 'package:mapdesign_flutter/Screen/locationRegister/location_writer_form.d
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/Screen/google_map_screen.dart';
+import 'package:mapdesign_flutter/APIs/LocationAPIs/location_up.dart';
 
 
-class LocationWritePage extends StatefulWidget {
-  const LocationWritePage({
+class LocationRecommend extends StatefulWidget {
+  const LocationRecommend({
     super.key,
-    required this.mapCategoryName,
-    required this.latitude,
-    required this.longitude,
+    required this.locationId,
+    required this.locationName
   });
-  final double latitude;
-  final double longitude;
-  final String mapCategoryName;
+  final String locationName;
+  final int locationId;
   @override
-  State<LocationWritePage> createState() => _LocationWritePageState();
+  State<LocationRecommend> createState() => _LocationRecommendState();
 }
 
-class _LocationWritePageState extends State<LocationWritePage> {
+class _LocationRecommendState extends State<LocationRecommend> {
   XFile? _image;
   final TextEditingController _textController = TextEditingController();
   final ImagePicker picker = ImagePicker();
@@ -46,17 +45,17 @@ class _LocationWritePageState extends State<LocationWritePage> {
   Widget _buildPhotoArea() {
     return _image != null
         ? Container(
-            margin: EdgeInsets.only(right: 10, left: 10),
-            width: double.infinity,
-            height: 300,
-            child: Image.file(File(_image!.path)), //가져온 이미지를 화면에 띄워주는 코드
-          )
+      margin: EdgeInsets.only(right: 10, left: 10),
+      width: double.infinity,
+      height: 300,
+      child: Image.file(File(_image!.path)), //가져온 이미지를 화면에 띄워주는 코드
+    )
         : Container(
-            margin: EdgeInsets.only(right: 10, left: 10),
-            width: double.infinity,
-            height: 300,
-            color: Colors.grey,
-          );
+      margin: EdgeInsets.only(right: 10, left: 10),
+      width: double.infinity,
+      height: 300,
+      color: Colors.grey,
+    );
   }
   Widget _buildButton() {
     return Row(
@@ -94,10 +93,11 @@ class _LocationWritePageState extends State<LocationWritePage> {
   }
   @override
   Widget build(BuildContext context) {
+    _textController.text = widget.locationName;
     return SafeArea(
-        child: Scaffold(
+      child: Scaffold(
           appBar: AppBar(
-            title: Text("모두의 장소 등록"),
+            title: Text("모두의 장소 추천"),
             backgroundColor: AppColors.instance.skyBlue,
           ),
           body: SingleChildScrollView(
@@ -141,17 +141,10 @@ class _LocationWritePageState extends State<LocationWritePage> {
                     ),
                     onPressed: () {
                       try{
-                        LocationRegister.postLocation(
-                            widget.latitude,
-                            widget.longitude,
-                            widget.mapCategoryName,
-                            _textController.text,
-                            imageBytes,
-                        );
-                        CustomDialog.showCustomDialog(context, "장소 등록", "장소 등록이 성공적으로 수행되었습니다!"
-                            "여러 사람이 장소를 선택할 시 점수가 상승하며 일정 점수 이상시 모든 유저에게 보이게 됩니다!");
+                        LocationUp.recommendLocation(widget.locationId, _textController.text, imageBytes);
+                        CustomDialog.showCustomDialog(context, "장소 추천", "장소 추천이 성공적으로 수행되었습니다!");
                       }catch(e){
-                        CustomDialog.showCustomDialog(context, "장소 등록", "장소 등록에 실패했습니다!");
+                        CustomDialog.showCustomDialog(context, "장소 추천", "장소 추천에 실패했습니다!");
                       }finally{
                         Navigator.pushAndRemoveUntil(
                             context, MaterialPageRoute(
@@ -161,13 +154,13 @@ class _LocationWritePageState extends State<LocationWritePage> {
                       }
                     },
                     icon: Icon(Icons.share_location),
-                    label: Text("등록"),
+                    label: Text("추천"),
                   ),
                 )
               ],
-              ),
-            )
-          ),
+            ),
+          )
+      ),
     );
   }
 }

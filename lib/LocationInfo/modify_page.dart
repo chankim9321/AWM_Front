@@ -37,48 +37,10 @@ class _ModifyScreenState extends State<ModifyScreen> {
       _controller = quill.QuillController.basic();
     });
   }
-  /*Future<void> _fetchDataFromBackend() async { //토큰없이도 볼 수 있음 , 무슨내용 썻는지 확인용 수정은 아직 안됨
-    try {
-      final response = await http.get(
-        Uri.parse('https://f42b-27-124-178-180.ngrok-free.app/log/paging/1?page=$currentPage'), //url만 붙이면 됨 ex:https://f42b-27-124-178-180.ngrok-free.app/log/paging/1?page=$currentPage
-      );
-
-      if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-        final data = json.decode(decodedBody);
-
-        final logs = data['content'] as List;
-        String combinedText = '';
-
-        for (var log in logs) {
-          final content = log['content'];
-
-            combinedText += '$content\n\n\n';
-
-        }
-
-        _controller = quill.QuillController(
-          document: quill.Document()..insert(0, combinedText),
-          selection: TextSelection.collapsed(offset: 0),
-        );
-
-        setState(() {});
-      } else {
-        print('API 호출 실패: ${response.statusCode}');
-      }
-
-      currentPage++;
-    } catch (error) {
-      print('API 호출 에러: $error');
-    }
-  }
-*/
   Future<void> _saveDocument() async {
     if (_controller == null) return;
     final String plainText = _controller!.document.toPlainText();
     try {
-      print(plainText);
-      print(token);
       print('http://${ServerConf.url}/user/log/save/${widget.locationId}');
       final response = await http.post(
         Uri.parse('http://${ServerConf.url}/user/log/save/${widget.locationId}'),
@@ -111,7 +73,7 @@ class _ModifyScreenState extends State<ModifyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Text'),
+        title: Text('정보 업데이트'),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),

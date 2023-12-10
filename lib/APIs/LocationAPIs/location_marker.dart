@@ -47,7 +47,6 @@ class MarkerModel{
     final response = await http.get(Uri.parse("http://${ServerConf.url}/location/search/within-range?latitude=$latitude&longitude=$longitude&range=$maxRange&minRange=$minRange"));
     if (response.statusCode == 200) {
       List<dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
-      print("좌표 불러오기 성공!");
       return MarkerModel.fromJsonList(jsonData);
     } else {
       throw Exception('Failed to load markers');

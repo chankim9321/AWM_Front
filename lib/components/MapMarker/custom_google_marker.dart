@@ -149,8 +149,7 @@ Future<BitmapDescriptor> getMarkerIcon(String imagePath, Uint8List imageData, Si
   Uint8List markerImage = await createMarkerImage(imagePath, imageData, size);
   return BitmapDescriptor.fromBytes(markerImage);
 }
-
-class CustomMarkerIcon extends StatefulWidget {
+class CustomGoogleMarker extends StatefulWidget {
   final String imagePath;
   final Size size;
   final bool isPlace;
@@ -158,14 +157,14 @@ class CustomMarkerIcon extends StatefulWidget {
   final double longitude;
   final String category;
   final Uint8List imageData;
-  const CustomMarkerIcon({super.key, required this.imagePath, required this.size, this.isPlace = false,
+  const CustomGoogleMarker({super.key, required this.imagePath, required this.size, this.isPlace = false,
     required this.latitude, required this.longitude, required this.imageData, this.category = "none"});
 
   @override
-  _CustomMarkerIconState createState() => _CustomMarkerIconState();
+  _CustomGoogleMarkerState createState() => _CustomGoogleMarkerState();
 }
 
-class _CustomMarkerIconState extends State<CustomMarkerIcon> {
+class _CustomGoogleMarkerState extends State<CustomGoogleMarker> {
   Uint8List? imageBytes;
   @override
   void initState() {
