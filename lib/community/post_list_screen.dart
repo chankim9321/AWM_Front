@@ -249,7 +249,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('커뮤니티',
+          title: Text('자유게시판',
             style: TextStyle(
               color: AppColors.instance.white,
             ),

@@ -83,8 +83,8 @@ class _LocationWritePageState extends State<LocationWritePage> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.camera_alt_outlined),
-                  Text(" 앨범에서 가져오기")
+                  Icon(Icons.camera_alt_outlined, color: Colors.white,),
+                  Text(" 앨범에서 가져오기", style: TextStyle(color: Colors.white),)
                 ],
               )
           ),
@@ -155,7 +155,7 @@ class _LocationWritePageState extends State<LocationWritePage> {
                       }finally{
                         Navigator.pushAndRemoveUntil(
                             context, MaterialPageRoute(
-                            builder: (context) => Test()
+                            builder: (context) => MapScreen()
                         ), (Route<dynamic> route) => false
                         );
                       }

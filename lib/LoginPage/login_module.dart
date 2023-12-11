@@ -37,7 +37,7 @@ class _LoginModuleState extends State<LoginModule> {
     await _setToken();
     await _checkLogined();
     if(isLogined!){
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Test()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MapScreen()));
     }
   }
   @override

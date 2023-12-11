@@ -86,7 +86,7 @@ class _DetailScreenState extends State<DetailScreen> {
               }finally{
                 Navigator.pushAndRemoveUntil(
                     context, MaterialPageRoute(
-                    builder: (context) => Test()
+                    builder: (context) => MapScreen()
                 ), (Route<dynamic> route) => false
                 );
               }

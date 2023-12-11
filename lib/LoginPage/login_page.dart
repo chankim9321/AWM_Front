@@ -52,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
         storage.writeSecureData("token", accessToken);
 
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Test()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MapScreen()));
       }else{
         // error handling required
         CustomDialog.showCustomDialog(context, "로그인 실패!", "ID 또는 Password가 잘못 되었습니다.");
@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
     // 인디케이터를 닫기
     Navigator.of(context, rootNavigator: true).pop();
 
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Test()));
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MapScreen()));
     // 메인페이지로 이동
   }
   @override
@@ -106,7 +106,6 @@ class _LoginPageState extends State<LoginPage> {
                 //   )
                 // ),
                 SizedBox(height: 25),
-
                 //username
                 MyTextField(
                     controller: idController,
