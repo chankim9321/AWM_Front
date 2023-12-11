@@ -17,13 +17,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/user_info.dart';
 import 'package:mapdesign_flutter/LocationInfo/marker_clicked.dart';
-class Test extends StatefulWidget {
-  const Test({super.key});
+class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
 
   @override
-  State<Test> createState() => _TestState();
+  State<MapScreen> createState() => _MapScreenState();
 }
-class _TestState extends State<Test>{
+class _MapScreenState extends State<MapScreen>{
   final storage = FlutterSecureStorage();
   late Position currentLocation;
   bool highlightMarker = false;
@@ -66,7 +66,6 @@ class _TestState extends State<Test>{
     super.initState();
     _initializeAsync();
   }
-
   void _zoomIn() {
     _mapController?.animateCamera(CameraUpdate.zoomIn());
   }
@@ -87,7 +86,7 @@ class _TestState extends State<Test>{
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: LatLng(currentPosition.latitude, currentPosition.longitude),
-          zoom: 14.0,
+          zoom: 17.0,
         ),
       ),
     );
@@ -265,9 +264,9 @@ class _TestState extends State<Test>{
               bottom: 10.0,
               right: 10.0,
               child: FloatingActionButton(
-                onPressed: () {
+                onPressed: () async {
                   // 현재 카메라 위치 출력
-                  print(getCurrentCameraPosition());
+                  await _goToCurrentLocation();
                 },
                 child: Icon(Icons.location_on),
               ),

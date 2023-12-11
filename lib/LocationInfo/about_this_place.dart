@@ -239,7 +239,7 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
                         if (contentList[index]['id'] != null) {
                           _deletePost(contentList[index]['id']);
                         } else {
-                          print('id is null');
+                          print('id is nulll');
                         }
                       },
                     ),
@@ -249,7 +249,7 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
               Container(
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
-                  color: Color(0xFF87CEFA),
+                  color: contentList[index]['likeCount'] >= contentList[index]['badCount'] ? Colors.lightGreen : Colors.red,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Padding(

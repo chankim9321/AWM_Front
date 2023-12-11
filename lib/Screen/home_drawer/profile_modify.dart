@@ -11,6 +11,8 @@ import 'package:mapdesign_flutter/Screen/locationRegister/location_writer_form.d
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/user_info.dart';
+import 'package:mapdesign_flutter/Screen/google_map_screen.dart';
+
 
 class ProfileModifyPage extends StatefulWidget {
   const ProfileModifyPage({super.key, required this.profileImage, required this.nickname});
@@ -98,8 +100,12 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
       CustomDialog.showCustomDialog(context, "프로필수정", "오류가 발생했습니다: $e");
     } finally {
       // 최종적으로 홈 화면으로 이동
-      Navigator.pop(context);
-      Navigator.pop(context);
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+              builder: (context) => MapScreen()
+          ), (route) => false
+      );
     }
   }
   Future getImage(ImageSource imageSource) async {

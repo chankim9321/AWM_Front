@@ -119,13 +119,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    var background;
-    if(UserInfo.profileImage.isEmpty){
-      background = AssetImage(UserInfo.defaultProfileImage);
-    }
-    else{
-      background = Image.memory(UserInfo.profileImage);
-    }
+    var background= AssetImage(UserInfo.defaultProfileImage);
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -307,11 +301,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   onCommentAdded: onCommentAdded, // Pass the callback
                 );
                 // Notify the parent widget about the new comment
-                onCommentAdded(newComment);
+
                 // Clear the input field
                 searchController.clear();
                 setState(() {
-
+                  onCommentAdded(newComment);
                 });
               },
             ),

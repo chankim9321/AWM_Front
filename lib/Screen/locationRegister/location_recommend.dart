@@ -148,7 +148,7 @@ class _LocationRecommendState extends State<LocationRecommend> {
                       }finally{
                         Navigator.pushAndRemoveUntil(
                             context, MaterialPageRoute(
-                            builder: (context) => Test()
+                            builder: (context) => MapScreen()
                         ), (Route<dynamic> route) => false
                         );
                       }

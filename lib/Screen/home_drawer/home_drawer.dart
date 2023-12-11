@@ -155,7 +155,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
                                 Icons.list_alt_outlined,
                                 color: Colors.white,
                               ),
-                              title: Text("관심목록 추천", style: TextStyle(color: Colors.white),),
+                              title: Text("관심목록 설정", style: TextStyle(color: Colors.white),),
                             ),
                             ListTile(
                               onTap: () {
