@@ -20,7 +20,7 @@ class IntroductionFirstPage extends StatelessWidget {
                     children: const [
                       IntroductionPageText(introductionText: "함께 만드는 우리 동네 지도!"),
                       SizedBox(height: 20,),
-                      IntroductionPageText(introductionText: "집단지성으로 주변의 정보를 알아보세요."),
+                      IntroductionPageText(introductionText: "집단지성을 통한 주변정보 획득!"),
                       SizedBox(height: 20,),
                     ]
                 ),

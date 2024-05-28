@@ -26,7 +26,8 @@ class LocationClicked{
       };
     } else {
       // 오류 처리
-      throw Exception("Failed to load location data");
+      // throw Exception("Failed to load location data");
+      return null;
     }
   }
 }

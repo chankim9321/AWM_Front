@@ -22,6 +22,7 @@ class _LoginModuleState extends State<LoginModule> {
   late List<Widget> widgetList;
   String? token;
   bool? isLogined;
+  int _lastPage = 3;
   Future<void> _setToken() async {
     token = await SecureStorage().readSecureData('token');
   }
@@ -56,9 +57,9 @@ class _LoginModuleState extends State<LoginModule> {
   // skip 버튼을 눌렀을 때 마지막 페이지로 이동
   void _setLastPage(){
     setState(() {
-      _current = 3;
+      _current = _lastPage;
     });
-    _carouselController.jumpToPage(3);
+    _carouselController.jumpToPage(_lastPage);
   }
   void onPageChange(index){
     setState(() {

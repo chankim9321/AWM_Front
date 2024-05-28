@@ -67,7 +67,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
       print('currentPage');
       print(currentPage);
       if (newPost.isNotEmpty) {
-        dataList.insertAll(0, newPost);
+        // dataList.insertAll(0, newPost);
         _streamController.add(dataList);
       }
     } catch (e) {

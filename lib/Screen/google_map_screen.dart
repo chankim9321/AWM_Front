@@ -1,6 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
+import 'package:flutter_icon_shadow/flutter_icon_shadow.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latLng;
@@ -17,6 +19,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/user_info.dart';
 import 'package:mapdesign_flutter/LocationInfo/marker_clicked.dart';
+import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
+import 'package:animated_icon/animated_icon.dart';
+
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -25,16 +30,18 @@ class MapScreen extends StatefulWidget {
 }
 class _MapScreenState extends State<MapScreen>{
   final storage = FlutterSecureStorage();
-  late Position currentLocation;
-  bool highlightMarker = false;
-  bool toggleAimPoint = false;
+  late Position currentLocation; // 현재 위치
+  bool highlightMarker = false; // 마커 하이라이트
+  bool toggleAimPoint = false; // 위치 등록 시도시 에임 포인트 존재여부
   double zoom = 15.0;
+  NotchBottomBarController _notchBottomBarController = NotchBottomBarController();
   List<MarkerModel> markerList = [];
   List<double> radius = [0, 200, 400, 600, 800, 1000];
   int radiusIndex = 2;
   String? token;
   String imagePath = "asset/img/default_profile.jpeg";
-
+  // 검색창 text controller
+  var searchController = TextEditingController();
   Set<Marker> markers = {};
   GoogleMapController? _mapController;
   LatLng? _currentCameraPosition;
@@ -43,8 +50,8 @@ class _MapScreenState extends State<MapScreen>{
   Future<void> _saveProfileImage() async {
     try{
       var data = await UserProfile.getUserProfile();
-      UserInfo.userNickname = data['nickName'];
-      UserInfo.profileImage = data['image'];
+      UserInfo.userNickname = data['nickName']; // 유저의 닉네임을 가져옴
+      UserInfo.profileImage = data['image']; // 유저의 프로필 사진
     }catch(e){ // 존재하지 않을 때
       print("failed to load data");
       UserInfo.userNickname = "익명의 유저";
@@ -118,6 +125,7 @@ class _MapScreenState extends State<MapScreen>{
   }
   // 현재 카메라 위치 가져오기
   void _onCameraMove(CameraPosition position) {
+    // print("camera moved! position zoom: ${position.zoom}, position target: ${position.target}");
     _currentCameraPosition = position.target;
   }
   LatLng? getCurrentCameraPosition() {
@@ -129,7 +137,7 @@ class _MapScreenState extends State<MapScreen>{
       toggleAimPoint = !toggleAimPoint;
     });
   }
-  void loadMarkerList() async{
+  Future<void> _loadMarkerList() async{
     try{
       markerList = await MarkerModel.fetchMarkers(
         currentLocation!.latitude,
@@ -138,13 +146,25 @@ class _MapScreenState extends State<MapScreen>{
         radius[radiusIndex-2],
       );
     }catch(e){
-      // CustomDialog.showCustomDialog(context, "위치 불러오기", "위치정보를 불러오는데 실패했습니다! 네트워크 상태를 확인해주세요.");
+       CustomDialog.showCustomDialog(context, "위치 불러오기", "위치정보를 불러오는데 실패했습니다! 네트워크 상태를 확인해주세요.");
+    }
+  }
+  void _loadMarkerListTest() async {
+    try{
+      markerList = await MarkerModel.fetchMarkers(
+        currentLocation!.latitude,
+        currentLocation!.longitude,
+        radius[radiusIndex],
+        radius[radiusIndex-2],
+      );
+    }catch(e){
+      CustomDialog.showCustomDialog(context, "위치 불러오기", "위치정보를 불러오는데 실패했습니다! 네트워크 상태를 확인해주세요.");
     }
   }
   Future<void> _addUserIcon() async{
     BitmapDescriptor icon;
     if(UserInfo.profileImage.isEmpty){
-      // 로그인 하지 않았을 때
+      // 로그인 하지 않았을 때 기본 프로필 사진 설정
       icon = await getMarkerIcon(imagePath, UserInfo.profileImage, Size(180.0,180.0));
     }else{
       // 로그인 했을 때
@@ -163,7 +183,7 @@ class _MapScreenState extends State<MapScreen>{
     });
   }
   Future<void> _addLocationMarker() async{
-    loadMarkerList();
+    await _loadMarkerList();
     for (var element in markerList) {
       String markerIdVal = 'marker_${element.latitude}_${element.longitude}';
       BitmapDescriptor icon = await getMarkerIcon(LocationCategoryPath.categoryPath[element.category]!, UserInfo.profileImage, Size(180.0,180.0));
@@ -193,8 +213,8 @@ class _MapScreenState extends State<MapScreen>{
   }
   @override
   Widget build(BuildContext context) {
-
     var appBar = AppBar(
+      iconTheme: IconThemeData(color: Colors.white),
       title: Container(
         width: double.infinity,
         height: 40,
@@ -204,8 +224,10 @@ class _MapScreenState extends State<MapScreen>{
         ),
         child: Center(
           child: TextField(
+            controller: searchController,
             style: TextStyle(color: Colors.black),
             decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(vertical: 10.0), // 상하 패딩 동일하게 설정
               prefixIcon: Icon(
                 Icons.search,
                 color: AppColors.instance.skyBlue,
@@ -214,6 +236,8 @@ class _MapScreenState extends State<MapScreen>{
                 icon: Icon(Icons.clear),
                 onPressed: () {
                   /* Clear the search field */
+                  searchController.text = "";
+                  // 검색기능 추가 요망
                 },
                 color: AppColors.instance.skyBlue,
               ),
@@ -236,10 +260,15 @@ class _MapScreenState extends State<MapScreen>{
         body: Stack(
           children: [
             GoogleMap(
+              // padding:  EdgeInsets.only(bottom: 100, left: 50),
+              trafficEnabled: true,
+              indoorViewEnabled: true,
+              myLocationButtonEnabled: false,
               initialCameraPosition: CameraPosition(
                 target: LatLng(0.0, 0.0),
                 zoom: 20.0,
               ),
+              zoomGesturesEnabled: true,
               mapType: MapType.normal,
               // 스타일 적용
               onMapCreated: _onMapCreated,
@@ -248,101 +277,131 @@ class _MapScreenState extends State<MapScreen>{
             ),
             if (toggleAimPoint) // toggleAimPoint 상태에 따라 아이콘 표시 여부 결정
               Positioned(
-                top: (availableHeight - 130) / 2, // 아이콘의 높이를 고려하여 중앙 정렬
-                left: MediaQuery.of(context).size.width / 2 - 30, // 아이콘의 너비를 고려하여 중앙 정렬
-                child: Icon(
-                  Icons.add_location,
-                  size: 60,
-                  color: AppColors.instance.skyBlue,
+                top: (availableHeight - 180) / 2, // 아이콘의 높이를 고려하여 중앙 정렬
+                left: MediaQuery.of(context).size.width / 2 - 20, // 아이콘의 너비를 고려하여 중앙 정렬
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned(
+                      bottom: 5.0, // 그림자를 아이콘 발 밑으로 이동
+                      child: Container(
+                        width: 20, // 아이콘 너비에 맞게 그림자 크기 조정
+                        height: 15, // 그림자 높이를 더 작게 설정
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.2), // 그림자 색상
+                          borderRadius: BorderRadius.circular(50), // 그림자 모양 둥글게 설정
+                        ),
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.only(bottom: 60)),
+                    Icon(
+                      Icons.add_location,
+                      size: 40, // 아이콘 크기
+                      color: Colors.blue, // 아이콘 색상
+                    ),
+                  ],
                 ),
-              ),
+              )
           ],
         ),
-        floatingActionButton: Stack(
-          children: [
-            Positioned(
-              bottom: 10.0,
-              right: 10.0,
-              child: FloatingActionButton(
-                onPressed: () async {
-                  // 현재 카메라 위치 출력
-                  await _goToCurrentLocation();
-                },
-                child: Icon(Icons.location_on),
+        bottomNavigationBar: AnimatedNotchBottomBar(
+          color: AppColors.instance.skyBlue,
+          notchColor: AppColors.instance.skyBlue,
+          notchGradient: LinearGradient(
+            colors: const [Colors.blueAccent, Colors.lightBlueAccent] ,
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          notchBottomBarController: _notchBottomBarController,
+          onTap: (index) {
+            switch(index){
+              case 0:
+                if(toggleAimPoint){
+                  setShowAimPoint();
+                }
+                showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return LocationCategory(
+                      latitude: _currentCameraPosition!.latitude,
+                      longitude: _currentCameraPosition!.longitude,
+                    ); // Your custom widget
+                  },
+                );
+              case 1:
+                setShowAimPoint();
+                print("??");
+                break;
+              case 2:
+                if(toggleAimPoint){
+                  setShowAimPoint();
+                }
+                _goToCurrentLocation();
+                _loadMarkerListTest();
+                break;
+              default:
+            }
+          },
+          kBottomRadius: 40.0,
+          kIconSize: 24.0,
+          durationInMilliSeconds: 300,
+          bottomBarItems: [
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.add_location,
+                color: Colors.white,
               ),
+                activeItem: AnimateIcon(
+                  color: Colors.white,
+                  animateIcon: AnimateIcons.map,
+                  onTap: () {},
+                  iconType: IconType.continueAnimation,
+                )
             ),
-            Positioned(
-              bottom: 80.0,
-              right: 10.0,
-              child: FloatingActionButton(
-                onPressed: () {
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.add,
+                color: Colors.white
+              ),
+              // inActiveItem: AnimateIcon(
+              //   color: Colors.black,
+              //   animateIcon: AnimateIcons.,
+              //   onTap: () {
+              //     setShowAimPoint();
+              //   },
+              //   iconType: IconType.continueAnimation
+              // ),
+              activeItem: AnimateIcon(
+                color: Colors.blueAccent,
+                animateIcon: AnimateIcons.add,
+                onTap: () {
                   setShowAimPoint();
                 },
-                backgroundColor: AppColors.instance.skyBlue,
-                child: Icon(
-                  toggleAimPoint ? Icons.close : Icons.add,
-                  color: AppColors.instance.white,
-                ),
-              ),
+                iconType: IconType.continueAnimation,
+              )
             ),
-            Positioned(
-              bottom: 150.0,
-              right: 10.0,
-              child: FloatingActionButton(
-                onPressed: () => {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return LocationCategory(
-                        latitude: _currentCameraPosition!.latitude,
-                        longitude: _currentCameraPosition!.longitude,
-                      ); // Your custom widget
-                    },
-                  )
+            BottomBarItem(
+              inActiveItem: Icon(
+                Icons.location_on,
+                color: Colors.white
+              ),
+              // inActiveItem: AnimateIcon(
+              //   color: Colors.white,
+              //   animateIcon: AnimateIcons.mapPointer,
+              //   onTap: () {
+              //     _goToCurrentLocation();
+              //   },
+              //   iconType: IconType.continueAnimation,
+              // ),
+              activeItem: AnimateIcon(
+                color: Colors.white,
+                animateIcon: AnimateIcons.mapPointer,
+                onTap: () {
+                  _goToCurrentLocation();
                 },
-                backgroundColor: AppColors.instance.skyBlue,
-                child: Icon(
-                  Icons.add_location,
-                  color: AppColors.instance.white,
-                ),
-              ),
+                iconType: IconType.continueAnimation,
+              )
             ),
-            Positioned(
-              bottom: 220.0,
-              right: 10.0,
-              child: FloatingActionButton(
-                onPressed: () {
-                  _zoomOut();
-                  setState(() {
-                    loadMarkerList();
-                    _addLocationMarker();
-                  });
-                },
-                backgroundColor: AppColors.instance.skyBlue,
-                child: Icon(
-                  Icons.remove,
-                  color: AppColors.instance.white,
-                ),
-              ),
-            ),
-            Positioned(
-                bottom: 290.0,
-                right: 10.0,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    _zoomIn();
-                    setState(() {
-                      loadMarkerList();
-                      _addLocationMarker();
-                    });
-                  },
-                  backgroundColor: AppColors.instance.skyBlue,
-                  child: Icon(
-                    Icons.add,
-                    color: AppColors.instance.white,
-                  ),
-                )
-            )
           ],
         )
     );

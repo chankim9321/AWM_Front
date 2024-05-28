@@ -3,7 +3,6 @@ import 'package:mapdesign_flutter/Screen/locationRegister/location_write_page.da
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/Screen/category_list.dart';
 
-
 class LocationCategory extends StatefulWidget {
   const LocationCategory({
     super.key,
@@ -23,6 +22,7 @@ class _LocationCategoryState extends State<LocationCategory> {
   Color backgroundColor = AppColors.instance.whiteGrey;
 
   Widget build(BuildContext context) {
+    print("latitude = ${widget.latitude}, longitude = ${widget.longitude}");
     return SafeArea(
       minimum: EdgeInsets.all(10.0),
       child: GridView.builder(

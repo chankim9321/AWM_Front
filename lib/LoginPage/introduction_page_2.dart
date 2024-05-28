@@ -18,11 +18,11 @@ class IntroductionSecondPage extends StatelessWidget {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
                     children: const [
-                      IntroductionPageText(introductionText: "사용자들이 제공하는 실시간 위치 정보!"),
+                      IntroductionPageText(introductionText: "사용자들이 제공하는 실시간 정보!"),
                       SizedBox(height: 20,),
-                      IntroductionPageText(introductionText: "내 주변의 특별한 장소나 이벤트를 발견하세요."),
+                      IntroductionPageText(introductionText: "내 주변의 특별한 장소나 이벤트를 \n쉽게 찾아볼 수 있어요!"),
                       SizedBox(height: 20,),
-                      IntroductionPageText(introductionText: "사용자들의 평가와 후기를 통해 믿을 수 있는 정보만을 받아보세요."),
+                      IntroductionPageText(introductionText: "사용자들의 평가와 후기를 통해 \n믿을 수 있는 정보를 받아보세요!"),
                       SizedBox(height: 20,),
                     ]
                 ),
