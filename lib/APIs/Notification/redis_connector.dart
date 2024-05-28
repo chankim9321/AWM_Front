@@ -5,7 +5,7 @@ import 'device_id_creator.dart';
 
 class RedisClient {
   final _redis = RedisConnection();
-  final String _redisAddr = "redis://default:AVNS_r4DoVkFdnn2oVH7-_SL@redis-3347724a-byoungchan9321-1e2e.e.aivencloud.com:27686";
+
   final int _redisPort = 27686;
   final deviceId = DeviceIDCreator();
 
