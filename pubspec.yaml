@@ -58,7 +58,17 @@ dependencies:
   socket_io_client: ^2.0.0
   stomp_dart_client: ^1.0.0
   path_provider: ^2.1.1
-
+  animated_notch_bottom_bar: ^1.0.3
+  animated_icon: ^0.0.9
+  redis: ^4.0.0
+  permission_handler: ^11.1.0
+  flutter_local_notifications: ^9.4.0
+  device_info_plus: ^9.1.1
+  uuid: ^3.0.6
+  shelf: ^1.2.0
+  shelf_router: ^1.0.0
+  timezone: ^0.8.0
+  flutter_icon_shadow: ^2.0.6
 dev_dependencies:
   flutter_test:
     sdk: flutter

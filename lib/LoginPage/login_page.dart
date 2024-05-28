@@ -194,9 +194,9 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // 다른 계정으로 로그인(파이어베이스 요구됨)
-                    SquareTile(imagePath: 'asset/icons/btn_google.svg', height: 40, onTap: () => {}, notice: "Continue with Google",),
+                    SquareTile(imagePath: 'asset/icons/btn_google.svg', height: 40, onTap: () => {}, notice: "구글 아이디로 시작하기",),
                     SizedBox(height: 20),
-                    SquareTile(imagePath: 'asset/icons/btn_naver.svg', height: 40, onTap: () => {}, notice: "Continue with Naver",)
+                    SquareTile(imagePath: 'asset/icons/btn_naver.svg', height: 40, onTap: () => {}, notice: "네이버 아이디로 시작하기",)
                   ],
                 ),
                 SizedBox(height: 20),

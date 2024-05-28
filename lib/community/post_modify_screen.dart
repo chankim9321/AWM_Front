@@ -43,7 +43,7 @@ class _PostModifyScreenState extends State<PostModifyScreen> {
   }
   Future<void> _initPostInfo() async{
     PostDetail postInfo = await fetchPostDetail(widget.postId);
-    titleController.text = postInfo.boardDto.boardContent;
+    titleController.text = postInfo.boardDto.boardTitle;
     contentController.text = postInfo.boardDto.boardContent;
     // if(postInfo.boardDto.image != null){
     //   Uint8List bytes = base64.decode(postInfo.boardDto.image!);

@@ -245,12 +245,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Positioned(
               top: (availableHeight - 60) / 2, // 아이콘의 높이를 고려하여 중앙 정렬
               left: MediaQuery.of(context).size.width / 2 - 30, // 아이콘의 너비를 고려하여 중앙 정렬
-              child: Icon(
-                Icons.add_location,
-                size: 60,
-                color: AppColors.instance.skyBlue,
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white, // 아이콘 배경색
+                  shape: BoxShape.circle, // 원형 아이콘
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // 그림자 색상
+                      spreadRadius: 2, // 그림자의 확산 반경
+                      blurRadius: 6, // 그림자의 흐림 반경
+                      offset: Offset(0, 4), // 그림자의 위치
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  shadows: <Shadow>[Shadow(color: Colors.black, blurRadius: 1.0)],
+                  Icons.add_location,
+                  size: 40, // 아이콘 크기
+                  color: Colors.blue, // 아이콘 색상
+                ),
               ),
-            ),
+            )
         ],
       ),
     );

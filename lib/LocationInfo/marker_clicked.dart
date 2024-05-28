@@ -1,4 +1,5 @@
 
+
 import 'package:flutter/material.dart';
 import 'package:mapdesign_flutter/APIs/LocationAPIs/location_clicked.dart';
 import 'package:mapdesign_flutter/APIs/LocationAPIs/location_detailed.dart';
@@ -9,9 +10,9 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:async';
+import 'package:animated_icon/animated_icon.dart';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
-
 
 class MarkerClicked extends StatefulWidget {
   const MarkerClicked({super.key, required this.latitude, required this.longitude, required this.category});
@@ -25,12 +26,13 @@ class MarkerClicked extends StatefulWidget {
 class _MarkerClickedState extends State<MarkerClicked> {
   List<Uint8List> imagePaths = [];
   String title = '';
-  String defaultImagePath = "asset/img/default_location_image.webp";
+  String defaultImagePath = "asset/img/default_location.jpg";
   int currentPage = 0;
   final double imageWidth = 60.0; // 이미지 너비
   final double imageHeight = 60.0; // 이미지 높이
   final double padding = 8.0; // 패딩
   late ImageProvider image;
+
   Future<Uint8List> convertImageFileToUint8List(File imageFile) async {
     Uint8List uint8list = await imageFile.readAsBytes();
     return uint8list;
@@ -39,16 +41,35 @@ class _MarkerClickedState extends State<MarkerClicked> {
   Future<void> _loadImages() async {
     var locationData = await LocationClicked.clickLocation(widget.latitude, widget.longitude, widget.category);
     imagePaths = locationData['images'];
-    if(imagePaths.isEmpty){
+    if (imagePaths.isEmpty) {
       print("no imagess..");
       var bytes = await rootBundle.load(defaultImagePath);
       imagePaths.add(bytes.buffer.asUint8List());
       setState(() {
         title = locationData['title'];
+        image = MemoryImage(imagePaths[0]);
+      });
+    } else {
+      print("yes images");
+      setState(() {
+        title = locationData['title'];
+        image = MemoryImage(locationData['images'][0]);
+      });
+    }
+  }
+  Future<void> _loadImagesTest() async {
+    var locationData = await LocationClicked.clickLocation(widget.latitude, widget.longitude, widget.category);
+    if(locationData == null){
+      print("no imagess..");
+      var bytes = await rootBundle.load(defaultImagePath);
+      imagePaths.add(bytes.buffer.asUint8List());
+      setState(() {
+        title = "임시 테스트 장소";
         // image = AssetImage(defaultImagePath);
         image = MemoryImage(imagePaths[0]);
       });
     }else{
+      imagePaths = locationData['images'];
       print("yes images");
       setState(() {
         title = locationData['title'];
@@ -57,25 +78,24 @@ class _MarkerClickedState extends State<MarkerClicked> {
       });
     }
   }
-  Future<void> _init() async{
-    await _loadImages();
+  Future<void> _init() async {
+    await _loadImagesTest();
   }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _init();
   }
+
   @override
   Widget build(BuildContext context) {
-    // 디바이스 너비 계산
     final deviceWidth = MediaQuery.of(context).size.width;
-
-    // 표시할 수 있는 이미지의 최대 개수 계산
     int maxImages = (deviceWidth / (imageWidth + padding * 2)).floor();
     if (maxImages > imagePaths.length) {
       maxImages = imagePaths.length;
     }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -90,7 +110,7 @@ class _MarkerClickedState extends State<MarkerClicked> {
               Navigator.of(context).pop();
             },
           ),
-        )
+        ),
       ),
       body: PageView.builder(
         itemCount: imagePaths.length,
@@ -98,7 +118,6 @@ class _MarkerClickedState extends State<MarkerClicked> {
           setState(() {
             currentPage = index;
           });
-          print(index);
         },
         itemBuilder: (context, index) {
           return Stack(
@@ -108,6 +127,15 @@ class _MarkerClickedState extends State<MarkerClicked> {
                   image: DecorationImage(
                     image: imagePaths.isNotEmpty ? MemoryImage(imagePaths[currentPage]) : image,
                     fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.black.withOpacity(0.3), Colors.black.withOpacity(0.7)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
                 ),
               ),
@@ -128,6 +156,13 @@ class _MarkerClickedState extends State<MarkerClicked> {
                               fontSize: 32.0,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
+                              shadows: const [
+                                Shadow(
+                                  blurRadius: 10.0,
+                                  color: Colors.black,
+                                  offset: Offset(3.0, 3.0),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -174,42 +209,54 @@ class _MarkerClickedState extends State<MarkerClicked> {
                         SizedBox(height: 16.0),
                         SafeArea(
                           child: Container(
-                            margin: EdgeInsets.only(left: 15.0, bottom: 20.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              gradient: LinearGradient(
+                                colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            margin: EdgeInsets.only(left: 15.0, bottom: 20.0, right: 15.0),
                             child: Align(
-                              alignment: Alignment.bottomLeft,
+                              alignment: Alignment.bottomCenter,
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(0.85),
-                                  minimumSize: Size(50.0, 60.0),
+                                  backgroundColor: Colors.transparent,
+                                  minimumSize: Size(double.infinity, 60.0),
                                   shape: StadiumBorder(),
+                                  elevation: 0,
                                 ),
                                 onPressed: () async {
                                   int locationId = await LocationDetailed.locationDetailedClick(
-                                      widget.latitude,
-                                      widget.longitude,
-                                      widget.category,
+                                    widget.latitude,
+                                    widget.longitude,
+                                    widget.category,
                                   );
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => DetailScreen(locationId: locationId, imagePaths: imagePaths, locationName: title)
-                                    )
+                                      builder: (context) => DetailScreen(locationId: locationId, imagePaths: imagePaths, locationName: title),
+                                    ),
                                   );
                                 },
-                                icon: Icon(
-                                  Icons.arrow_right_alt,
-                                  color: Colors.black,
-                                  size: 40.0,
+                                icon: AnimateIcon(
+                                  color: Colors.lightBlueAccent,
+                                  animateIcon: AnimateIcons.mapPointer,
+                                  onTap: () {
+
+                                  },
+                                  iconType: IconType.continueAnimation,
                                 ),
                                 label: Text(
                                   "자세히 알아보기",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                    fontSize: 17.0
+                                    color: Colors.white,
+                                    fontSize: 17.0,
                                   ),
                                 ),
-                              )
+                              ),
                             ),
                           ),
                         )
@@ -224,12 +271,5 @@ class _MarkerClickedState extends State<MarkerClicked> {
       ),
     );
   }
-  // void _openDetailScreen() {
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => DetailScreen(),
-  //     ),
-  //   );
-  // }
 }
+

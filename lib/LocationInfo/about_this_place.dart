@@ -5,6 +5,8 @@ import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 
+import 'dart:math';
+
 class AboutThisPlace extends StatefulWidget {
   const AboutThisPlace({super.key, required this.locationId});
   final int locationId;
@@ -21,7 +23,8 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
   @override
   void initState() {
     super.initState();
-    _fetchDataFromBackend();
+    // _fetchDataFromBackend();
+    _fetchDataFromBackendTest();
     _setToken();
   }
   void _setToken() async{
@@ -63,7 +66,21 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
       print('API 호출 에러: $error');
     }
   }
+  Future<void> _fetchDataFromBackendTest() async{
 
+    isExist = true;
+    final random = Random();
+    for (int i=0; i<10; i++) {
+      const id = "admin";
+      const nickName = "관리자";
+      const content = "Hello. This is test content!";
+      int likeCount = random.nextInt(10);
+      int badCount = random.nextInt(10);
+      setState(() {
+        contentList.add({'id': id, 'nickName': nickName, 'content': content, 'likeCount': likeCount, 'badCount': badCount});
+      });
+    }
+  }
   Future<void> _deletePost(int id) async {
     try {
       final response = await http.delete(
@@ -167,7 +184,21 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('About this place'),
+        title: Text(
+          'Decision Voting',
+          style: TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueAccent,
+            shadows: [
+              Shadow(
+                blurRadius: 10.0,
+                color: Colors.black.withOpacity(0.2),
+                offset: Offset(2.0, 2.0),
+                ),
+            ]
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
@@ -181,85 +212,102 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
           ),
         ],
       ),
-      body: !isExist
-          ? Center(child: Text("여러분이 알고있는 정보를 입력해주세요!"),)
-          : ListView.builder(
-        itemCount: contentList.length,
-        itemBuilder: (BuildContext context, int index) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${contentList[index]['nickName']}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                            fontSize: 20.0,
+      body: !isExist ? Center(child: Text("여러분이 알고있는 정보를 입력해주세요!"),)
+        : ListView.builder(itemCount: contentList.length, itemBuilder: (BuildContext context, int index) {
+           return Container(
+             height: 130,
+             margin: const EdgeInsets.only(bottom: 32, right: 10, left: 10),
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+             decoration: BoxDecoration(
+               gradient: LinearGradient(
+                 colors: contentList[index]['likeCount'] < contentList[index]['badCount'] ?
+                 [Colors.purpleAccent, Colors.redAccent] :
+                 [Colors.blueAccent, Colors.lightBlueAccent] ,
+                 begin: Alignment.centerLeft,
+                 end: Alignment.centerRight,
+               ),
+               boxShadow: [
+                 BoxShadow(
+                   color: contentList[index]['likeCount'] < contentList[index]['badCount'] ?
+                   Colors.redAccent.withOpacity(0.4) :
+                   Colors.blueAccent.withOpacity(0.4) ,
+                   blurRadius: 8,
+                   spreadRadius: 2,
+                   offset: Offset(4, 4),
+                 ),
+               ],
+               borderRadius: BorderRadius.all(Radius.circular(24)),
+             ),
+             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                Padding(
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${contentList[index]['nickName']}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 20.0,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.thumb_up, color: Colors.green),
-                          onPressed: () {
-                            if (contentList[index]['id'] != null) {
-                              _likePost(contentList[index]['id']);
-                            } else {
-                              print('id is null');
-                            }
-                          },
-                        ),
-                        Text('${contentList[index]['likeCount']}'),
-                        IconButton(
-                          icon: Icon(Icons.thumb_down, color: Colors.red),
-                          onPressed: () {
-                            if (contentList[index]['id'] != null) {
-                              _dislikePost(contentList[index]['id']);
-                            } else {
-                              print('id is null');
-                            }
-                          },
-                        ),
-                        Text('${contentList[index]['badCount']}'),
-                      ],
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        if (contentList[index]['id'] != null) {
-                          _deletePost(contentList[index]['id']);
-                        } else {
-                          print('id is nulll');
-                        }
-                      },
-                    ),
-                  ],
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.thumb_up, color: Colors.white),
+                            onPressed: () {
+                              if (contentList[index]['id'] != null) {
+                                _likePost(contentList[index]['id']);
+                              } else {
+                                print('id is null');
+                              }
+                            },
+                          ),
+                          Text('${contentList[index]['likeCount']}'),
+                          IconButton(
+                            icon: Icon(Icons.thumb_down, color: Colors.white),
+                            onPressed: () {
+                              if (contentList[index]['id'] != null) {
+                                _dislikePost(contentList[index]['id']);
+                              } else {
+                                print('id is null');
+                              }
+                            },
+                          ),
+                          Text('${contentList[index]['badCount']}'),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.white),
+                            onPressed: () {
+                              if (contentList[index]['id'] != null) {
+                                _deletePost(contentList[index]['id']);
+                              } else {
+                                print('id is nulll');
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  color: contentList[index]['likeCount'] >= contentList[index]['badCount'] ? Colors.lightGreen : Colors.red,
-                  borderRadius: BorderRadius.circular(15),
+                Container(
+                  child: Text(
+                    contentList[index]['content'],
+                    style: TextStyle(color: Colors.white, fontFamily: 'avenir', fontSize: 17),
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('${contentList[index]['content']}'),
-                ),
-              ),
-              SizedBox(height: 30),
-            ],
-          );
+              ],
+            ),
+           );
         },
       ),
     );
