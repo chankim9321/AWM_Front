@@ -46,11 +46,12 @@ class MarkerModel{
   }
   static Future<List<MarkerModel>> fetchMarkers(double latitude, double longitude, double maxRange, double minRange) async {
     print(ServerConf.url);
-    final response = await http.get(Uri.parse("http://${ServerConf.url}/location/search/within-range?latitude=$latitude&longitude=$longitude&range=$maxRange&minRange=$minRange"));
+    final response = await http.get(Uri.parse("http://${ServerConf.url}/loc/location/search/within-range?latitude=$latitude&longitude=$longitude&range=$maxRange&minRange=$minRange"));
 
     if (response.statusCode == 200) {
       List<dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
       print("marker 리스트를 불러왔습니다.\n");
+      print(jsonData.length);
       return MarkerModel.fromJsonList(jsonData);
     } else {
       throw Exception('Failed to load markers');

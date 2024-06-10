@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
     try{
       // login through http request
       final response = await http.post(
-        Uri.parse('http://${ServerConf.url}/login'), // api login urㅣ
+        Uri.parse('http://${ServerConf.url}/auth/login'), // api login urㅣ
         headers: <String, String>{
           'Content-Type': 'application/json',
         },

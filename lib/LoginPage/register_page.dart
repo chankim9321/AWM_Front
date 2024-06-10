@@ -48,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
       try {
         // login through http request
         final response = await http.post(
-          Uri.parse('http://${ServerConf.url}/join'), // api login url
+          Uri.parse('http://${ServerConf.url}/auth/join'), // api login url
           headers: <String, String>{
             'Content-Type': 'application/json',
           },
@@ -70,6 +70,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
         else{
           // error handling required
+          print("회원가입 에러 - ${response.statusCode}");
           CustomDialog.showCustomDialog(context, "회원가입", "요청이 거부되었습니다.");
         }
       }  catch (e) {

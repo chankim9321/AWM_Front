@@ -11,7 +11,7 @@ class LocationUp{
     var response;
     if(image.isEmpty){
       response = http.post(
-          Uri.parse("http://${ServerConf.url}/user/location/edit"),
+          Uri.parse("http://${ServerConf.url}/loc/user/location/edit"),
           headers: <String, String>{
             'Content-Type': 'application/json',
             'Authorization': token!
@@ -23,7 +23,7 @@ class LocationUp{
       );
     }else{
       response = http.post(
-          Uri.parse("http://${ServerConf.url}/user/location/edit"),
+          Uri.parse("http://${ServerConf.url}/loc/user/location/edit"),
           headers: <String, String>{
             'Content-Type': 'application/json',
             'Authorization': token!

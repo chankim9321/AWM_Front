@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:mapdesign_flutter/LocationInfo/LocationRecommendation/location_recommend_page.dart';
 import 'dart:typed_data';
 import 'package:mapdesign_flutter/LocationInfo/place_component/sns_ui_heart_icon_screen.dart';
 import 'package:mapdesign_flutter/Screen/locationRegister/location_recommend.dart';
@@ -14,21 +15,30 @@ import 'package:mapdesign_flutter/Screen/google_map_screen.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 import 'package:mapdesign_flutter/community/post_list_screen.dart';
 import 'package:mapdesign_flutter/community/socket_chat.dart';
+import 'recoomend_button.dart';
+
 class DetailScreen extends StatefulWidget {
-  const DetailScreen({super.key, required this.locationId, required this.imagePaths, required this.locationName});
+  const DetailScreen(
+      {super.key,
+        required this.locationId,
+        required this.imagePaths,
+        required this.locationName});
+
   final List<Uint8List> imagePaths;
   final int locationId;
   final String locationName;
+
+
   @override
   _DetailScreenState createState() => _DetailScreenState();
 }
 
 class _DetailScreenState extends State<DetailScreen> {
   final List<Map<String, Icon>> buttonLabels = [
-    {"About this place" : Icon(Icons.feed_outlined)},
-    {"Community" : Icon(Icons.checklist_rtl)},
-    {"Chat" : Icon(Icons.chat)},
-    {"Contributor" : Icon(Icons.military_tech)},
+    {"About this place": Icon(Icons.feed_outlined)},
+    {"Community": Icon(Icons.checklist_rtl)},
+    {"Chat": Icon(Icons.chat)},
+    {"Contributor": Icon(Icons.military_tech)},
   ];
   int _selectedIndex = 0; // For the bottom navigation bar
 
@@ -47,9 +57,23 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        title: Text(
+          '장소 상세 정보',
+          style: TextStyle(
+            fontFamily: 'PretendardLight',
+            color: Colors.white,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueAccent, Colors.purpleAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        iconTheme: IconThemeData(color: Colors.white),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.border_color),
@@ -57,7 +81,10 @@ class _DetailScreenState extends State<DetailScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ModifyScreen(locationId: widget.locationId,)),
+                MaterialPageRoute(
+                    builder: (context) => ModifyScreen(
+                      locationId: widget.locationId,
+                    )),
               );
             },
           ),
@@ -67,10 +94,10 @@ class _DetailScreenState extends State<DetailScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => LocationRecommend(
-                    locationId: widget.locationId,
-                    locationName: widget.locationName)
-                ),
+                MaterialPageRoute(
+                    builder: (context) => LocationRecommend(
+                        locationId: widget.locationId,
+                        locationName: widget.locationName)),
               );
             },
           ),
@@ -78,28 +105,30 @@ class _DetailScreenState extends State<DetailScreen> {
             icon: Icon(Icons.thumb_down_alt_outlined),
             tooltip: "비추천 또는 점수 감소",
             onPressed: () {
-              try{
+              try {
                 LocationDown.disapproveLocation(widget.locationId);
-                CustomDialog.showCustomDialog(context, "장소 비추천", "장소 비추천이 성공적으로 수행되었습니다.");
-              }catch(e){
-                CustomDialog.showCustomDialog(context, "장소 비추천", "장소 비추천에 실패했습니다!");
-              }finally{
+                CustomDialog.showCustomDialog(context, "장소 비추천",
+                    "장소 비추천이 성공적으로 수행되었습니다.");
+              } catch (e) {
+                CustomDialog.showCustomDialog(context, "장소 비추천",
+                    "장소 비추천에 실패했습니다!");
+              } finally {
                 Navigator.pushAndRemoveUntil(
-                    context, MaterialPageRoute(
-                    builder: (context) => MapScreen()
-                ), (Route<dynamic> route) => false
-                );
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MapScreen()),
+                        (Route<dynamic> route) => false);
               }
             },
           ),
         ],
       ),
-      body: SingleChildScrollView( // Use SingleChildScrollView to avoid pixel overflow
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SizedBox(height: screenHeight * 0.05), // Adjust top space
-            CarouselSlider.builder(
+            widget.imagePaths.length != 0 ? CarouselSlider.builder(
               itemCount: widget.imagePaths.length,
               options: CarouselOptions(
                 height: screenHeight * 0.35, // Adjust the image height
@@ -121,18 +150,33 @@ class _DetailScreenState extends State<DetailScreen> {
                   ),
                 );
               },
+            ):
+            SizedBox(width: double.infinity, height: 200.0,),
+            SizedBox(height: screenHeight * 0.02), // Space between the carousel and the text
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                widget.locationName,
+                style: TextStyle(
+                  fontSize: 28.0,
+                  fontFamily: 'PretendardLight',
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-            SizedBox(height: screenHeight * 0.05), // Space between the carousel and the text
-            Text(
-              widget.locationName,
-              style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-            ),
+            SizedBox(height: 10.0),
             SnsUIHeartIconScreen(),
+            SizedBox(height: 10.0), // Adjust bottom space
+            RecommendButton(
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => SimilarPlacesPage(locationId: widget.locationId)));
+              },
+            ),
             SizedBox(height: 10.0), // Adjust bottom space
             Container(
               margin: EdgeInsets.only(left: 10, right: 10),
               width: MediaQuery.of(context).size.width,
-
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
@@ -140,59 +184,78 @@ class _DetailScreenState extends State<DetailScreen> {
                   crossAxisCount: 2, // Number of columns
                   crossAxisSpacing: 10.0, // Horizontal space between items
                   mainAxisSpacing: 10.0, // Vertical space between items
-                  childAspectRatio: 1.5,
+                  childAspectRatio: 1.2, // Adjusted aspect ratio for better appearance
                 ),
                 itemCount: 4,
                 itemBuilder: (BuildContext context, int index) {
                   return Container(
                     decoration: BoxDecoration(
-                      color: AppColors.instance.whiteGrey,
+                      gradient: LinearGradient(
+                        colors: [Colors.blueAccent, Colors.purpleAccent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 5,
+                          blurRadius: 7,
+                          offset: Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                            onPressed: () => {
-                              setState(() {
-                                _selectedIndex = index;
-                              }),
-                              if(index == 0){
-                                 Navigator.push(
-                                     context,
-                                     MaterialPageRoute(
-                                         builder: (context) => AboutThisPlace(locationId: widget.locationId))
-                                 )
-                              }
-                              else if (_selectedIndex == 1) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => BlogListScreen(locationId: widget.locationId,),
-                                    ),
-                                  )
-                              }
-                              else if (_selectedIndex == 2){
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatScreen(locationId: widget.locationId, nickName: UserInfo.userNickname,),
+                          onPressed: () {
+                            setState(() {
+                              _selectedIndex = index;
+                            });
+                            if (index == 0) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => AboutThisPlace(
+                                        locationId: widget.locationId)),
+                              );
+                            } else if (_selectedIndex == 1) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BlogListScreen(
+                                    locationId: widget.locationId,
                                   ),
-                                )
-                              }
-                              // Navigator.push(
-                              //     context,
-                              //     MaterialPageRoute(
-                              //         builder: (context) => LocationWritePage(mapCategoryName: categoryList[index].keys.first) // 글 쓰는 페이지로 이동
-                              //     )
-                              // )
-
-                            },
-                            icon: buttonLabels[index].values.first
+                                ),
+                              );
+                            } else if (_selectedIndex == 2) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
+                                    locationId: widget.locationId,
+                                    nickName: UserInfo.userNickname,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          icon: buttonLabels[index].values.first,
+                          iconSize: 50, // Increase icon size
+                          color: Colors.white,
                         ),
-                        Text(buttonLabels[index].keys.first)
+                        SizedBox(height: 10), // Add space between icon and text
+                        Text(
+                          buttonLabels[index].keys.first,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: 'PretendardThin',
+                          ),
+                        ),
                       ],
-                    )
+                    ),
                   );
                 },
               ),
@@ -200,25 +263,6 @@ class _DetailScreenState extends State<DetailScreen> {
           ],
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   items: const <BottomNavigationBarItem>[
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.group),
-      //       label: '커뮤니티',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.report),
-      //       label: '신고',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.star),
-      //       label: '즐겨찾기',
-      //     ),
-      //   ],
-      //   currentIndex: _selectedIndex,
-      //   selectedItemColor: Colors.blue[400],
-      //   onTap: _onItemTapped,
-      // ),
     );
   }
 }

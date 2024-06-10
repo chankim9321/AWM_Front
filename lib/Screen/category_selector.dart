@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapdesign_flutter/APIs/RecommendUserAPIs/get_favorite_category.dart';
 import 'package:mapdesign_flutter/Screen/category_list.dart';
+import 'package:mapdesign_flutter/Screen/location_category_selection_page.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
 
 class CategorySelector extends StatefulWidget {
@@ -56,7 +57,7 @@ class _CategorySelectorState extends State<CategorySelector> {
                         if (isSelected) {
                           selectedCategories.remove(key);
                         } else {
-                          selectedCategories.add(key);
+                          selectedCategories.add(key); // 올바른 키 값을 추가합니다.
                         }
                       });
                     },
@@ -118,7 +119,8 @@ class _CategorySelectorState extends State<CategorySelector> {
             child: ElevatedButton(
               onPressed: () async {
                 print(selectedCategories);
-                bool res = await GetFavoriteCategory.getFavoriteCategory(selectedCategories);
+                bool res = await GetFavoriteCategory.getFavoriteCategory(
+                    selectedCategories.map((category) => LocationCategoryPath.categoryToEng[category]!).toList()); // API에 전달할 때 변환
                 if (res) {
                   CustomDialog.showCustomDialog(context, "카테고리 등록", "선호하는 카테고리 등록되었습니다.");
                 } else {

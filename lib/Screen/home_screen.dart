@@ -9,7 +9,7 @@ import 'package:mapdesign_flutter/APIs/LocationAPIs/location_marker.dart';
 import 'package:mapdesign_flutter/APIs/UserAPIs/user_profile.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/Screen/home_drawer/home_drawer.dart';
-import 'package:mapdesign_flutter/Screen/location_category.dart';
+import 'package:mapdesign_flutter/Screen/location_category_selection_page.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/MapMarker/custom_marker.dart';
 import 'dart:convert';
@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<double> radius = [0, 200, 400, 600, 800, 1000];
   int radiusIndex = 2;
   String? token;
-  String imagePath = "asset/img/default_profile.jpeg";
+  String imagePath = "asset/img/default_profile.PNG";
 
 
   Future<void> _saveProfileImage() async {

@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_icon_shadow/flutter_icon_shadow.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart' as latLng;
@@ -11,7 +10,7 @@ import 'package:mapdesign_flutter/APIs/LocationAPIs/location_marker.dart';
 import 'package:mapdesign_flutter/APIs/UserAPIs/user_profile.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/Screen/home_drawer/home_drawer.dart';
-import 'package:mapdesign_flutter/Screen/location_category.dart';
+import 'package:mapdesign_flutter/Screen/location_category_selection_page.dart';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/components/MapMarker/custom_marker.dart';
 import 'dart:convert';
@@ -28,7 +27,7 @@ class MapScreen extends StatefulWidget {
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
-class _MapScreenState extends State<MapScreen>{
+class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin{
   final storage = FlutterSecureStorage();
   late Position currentLocation; // 현재 위치
   bool highlightMarker = false; // 마커 하이라이트
@@ -39,12 +38,18 @@ class _MapScreenState extends State<MapScreen>{
   List<double> radius = [0, 200, 400, 600, 800, 1000];
   int radiusIndex = 2;
   String? token;
-  String imagePath = "asset/img/default_profile.jpeg";
+  String imagePath = "asset/img/default_profile.PNG";
   // 검색창 text controller
   var searchController = TextEditingController();
   Set<Marker> markers = {};
   GoogleMapController? _mapController;
   LatLng? _currentCameraPosition;
+
+  // animated icon controller
+
+  late AnimationController _mapRegisterController;
+  late AnimationController _mapPointerController;
+  late AnimationController _mapCurrentPosistionController;
 
 
   Future<void> _saveProfileImage() async {
@@ -53,8 +58,8 @@ class _MapScreenState extends State<MapScreen>{
       UserInfo.userNickname = data['nickName']; // 유저의 닉네임을 가져옴
       UserInfo.profileImage = data['image']; // 유저의 프로필 사진
     }catch(e){ // 존재하지 않을 때
-      print("failed to load data");
-      UserInfo.userNickname = "익명의 유저";
+      print("[Profile] Failed to load profile data");
+      UserInfo.userNickname = "AWM";
       UserInfo.profileImage = Uint8List(0);
     }
   }
@@ -68,18 +73,31 @@ class _MapScreenState extends State<MapScreen>{
     await _addUserIcon();
     await _addLocationMarker();
   }
+  @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _initializeAsync();
+    // animation controller init
+    _mapRegisterController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    _mapPointerController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    _mapCurrentPosistionController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
   }
-  void _zoomIn() {
-    _mapController?.animateCamera(CameraUpdate.zoomIn());
-  }
+  @override
+  void dispose(){
+    _mapRegisterController.dispose();
+    _mapPointerController.dispose();
+    _mapCurrentPosistionController.dispose();
 
-  void _zoomOut() {
-    _mapController?.animateCamera(CameraUpdate.zoomOut());
+    super.dispose();
   }
+  // void _zoomIn() {
+  //   _mapController?.animateCamera(CameraUpdate.zoomIn());
+  // }
+  //
+  // void _zoomOut() {
+  //   _mapController?.animateCamera(CameraUpdate.zoomOut());
+  // }
   // 맵 초기 설정
   void _onMapCreated(GoogleMapController controller) {
     controller.setMapStyle('[{"featureType": "poi","stylers": [{"visibility": "off"}]}]');
@@ -97,6 +115,16 @@ class _MapScreenState extends State<MapScreen>{
         ),
       ),
     );
+  }
+  @override
+  Future<void> goToAnotherLocation(double lat, double long) async {
+    if(_mapController != null){
+      _mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(
+              CameraPosition(target: LatLng(lat, long), zoom: 17.0)
+          )
+      );
+    }
   }
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
@@ -131,7 +159,6 @@ class _MapScreenState extends State<MapScreen>{
   LatLng? getCurrentCameraPosition() {
     return _currentCameraPosition;
   }
-  @override
   void setShowAimPoint(){
     setState(() {
       toggleAimPoint = !toggleAimPoint;
@@ -322,7 +349,7 @@ class _MapScreenState extends State<MapScreen>{
                 showModalBottomSheet(
                   context: context,
                   builder: (BuildContext context) {
-                    return LocationCategory(
+                    return LocationCategorySelectionPage(
                       latitude: _currentCameraPosition!.latitude,
                       longitude: _currentCameraPosition!.longitude,
                     ); // Your custom widget
@@ -330,7 +357,6 @@ class _MapScreenState extends State<MapScreen>{
                 );
               case 1:
                 setShowAimPoint();
-                print("??");
                 break;
               case 2:
                 if(toggleAimPoint){
@@ -347,10 +373,10 @@ class _MapScreenState extends State<MapScreen>{
           durationInMilliSeconds: 300,
           bottomBarItems: [
             BottomBarItem(
-              inActiveItem: Icon(
-                Icons.add_location,
-                color: Colors.white,
-              ),
+                inActiveItem: Icon(
+                  Icons.add_location,
+                  color: Colors.white,
+                ),
                 activeItem: AnimateIcon(
                   color: Colors.white,
                   animateIcon: AnimateIcons.map,
@@ -359,48 +385,32 @@ class _MapScreenState extends State<MapScreen>{
                 )
             ),
             BottomBarItem(
-              inActiveItem: Icon(
-                Icons.add,
-                color: Colors.white
-              ),
-              // inActiveItem: AnimateIcon(
-              //   color: Colors.black,
-              //   animateIcon: AnimateIcons.,
-              //   onTap: () {
-              //     setShowAimPoint();
-              //   },
-              //   iconType: IconType.continueAnimation
-              // ),
-              activeItem: AnimateIcon(
-                color: Colors.blueAccent,
-                animateIcon: AnimateIcons.add,
-                onTap: () {
-                  setShowAimPoint();
-                },
-                iconType: IconType.continueAnimation,
-              )
+                inActiveItem: Icon(
+                    Icons.add,
+                    color: Colors.white
+                ),
+                activeItem: AnimateIcon(
+                  color: Colors.blueAccent,
+                  animateIcon: AnimateIcons.add,
+                  onTap: () {
+                    setShowAimPoint();
+                  },
+                  iconType: IconType.continueAnimation,
+                )
             ),
             BottomBarItem(
-              inActiveItem: Icon(
-                Icons.location_on,
-                color: Colors.white
-              ),
-              // inActiveItem: AnimateIcon(
-              //   color: Colors.white,
-              //   animateIcon: AnimateIcons.mapPointer,
-              //   onTap: () {
-              //     _goToCurrentLocation();
-              //   },
-              //   iconType: IconType.continueAnimation,
-              // ),
-              activeItem: AnimateIcon(
-                color: Colors.white,
-                animateIcon: AnimateIcons.mapPointer,
-                onTap: () {
-                  _goToCurrentLocation();
-                },
-                iconType: IconType.continueAnimation,
-              )
+                inActiveItem: Icon(
+                    Icons.location_on,
+                    color: Colors.white
+                ),
+                activeItem: AnimateIcon(
+                  color: Colors.white,
+                  animateIcon: AnimateIcons.mapPointer,
+                  onTap: () {
+                    _goToCurrentLocation();
+                  },
+                  iconType: IconType.continueAnimation,
+                )
             ),
           ],
         )

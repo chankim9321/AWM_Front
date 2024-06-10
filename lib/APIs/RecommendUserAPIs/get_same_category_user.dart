@@ -10,16 +10,20 @@ class GetSameCategoryUser{
   static getSameCategoryUser() async {
     String? token = await SecureStorage().readSecureData('token');
     final response = await http.get(
-      Uri.parse("http://${ServerConf.url}/user/search/similar-user"),
+      Uri.parse("http://${ServerConf.url}/user-m/user/search/similar-user"),
       headers: <String, String>{
         'Content-Type': 'application/json',
         'Authorization': token!
       },
     );
     if(response.statusCode == 200){
-      List<dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
-      print(jsonData.length);
-      return jsonData;
+      if(response.bodyBytes == null){
+        return [];
+      }
+      else {
+        List<dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
+        return jsonData;
+      }
     }
   }
 }

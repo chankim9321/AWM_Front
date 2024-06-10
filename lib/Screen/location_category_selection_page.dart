@@ -3,8 +3,8 @@ import 'package:mapdesign_flutter/Screen/locationRegister/location_write_page.da
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/Screen/category_list.dart';
 
-class LocationCategory extends StatefulWidget {
-  const LocationCategory({
+class LocationCategorySelectionPage extends StatefulWidget {
+  const LocationCategorySelectionPage({
     super.key,
     required this.latitude,
     required this.longitude
@@ -13,16 +13,17 @@ class LocationCategory extends StatefulWidget {
   final double latitude;
   final double longitude;
   @override
-  State<LocationCategory> createState() => _LocationCategoryState();
+  State<LocationCategorySelectionPage> createState() => _LocationCategorySelectionPageState();
 }
 
-class _LocationCategoryState extends State<LocationCategory> {
+class _LocationCategorySelectionPageState extends State<LocationCategorySelectionPage> {
   @override
   Color iconColor = AppColors.instance.skyBlue;
   Color backgroundColor = AppColors.instance.whiteGrey;
+  var categoryChanger = LocationCategoryPath();
 
   Widget build(BuildContext context) {
-    print("latitude = ${widget.latitude}, longitude = ${widget.longitude}");
+    // print("latitude = ${widget.latitude}, longitude = ${widget.longitude}");
     return SafeArea(
       minimum: EdgeInsets.all(10.0),
       child: GridView.builder(
@@ -68,21 +69,39 @@ class _LocationCategoryState extends State<LocationCategory> {
 class LocationCategoryPath {
   static const String path = "asset/markers/";
   static const Map<String, String> categoryPath = {
-    "도서관" : "${path}library.png",
-    "음식점" : "${path}restaurant.png",
-    "자전거" : "${path}bike.png",
-    "공원" : "${path}park.png",
-    "명소" : "${path}amusement.png",
-    "카페" : "${path}cafe.png",
-    "운동" : "${path}run.png",
-    "학교" : "${path}school.png",
-    "주차장" : "${path}parking.png",
-    "흡연장" : "${path}smoking.png",
-    "쓰레기통" : "${path}bin.png",
-    "편의점" : "${path}convenience.png",
-    "정류장" : "${path}busstop.png",
-    "프린트" : "${path}print.png",
-    "약국" : "${path}medical.png",
-    "기타" : "${path}unknown.png",
+    "library" : "${path}library.png",
+    "restaurant" : "${path}restaurant.png",
+    "bicycle" : "${path}bike.png",
+    "pakr" : "${path}park.png",
+    "hotspot" : "${path}amusement.png",
+    "cafe" : "${path}cafe.png",
+    "sports" : "${path}run.png",
+    "school" : "${path}school.png",
+    "parking" : "${path}parking.png",
+    "smoking" : "${path}smoking.png",
+    "trashcan" : "${path}bin.png",
+    "convenience" : "${path}convenience.png",
+    "bus" : "${path}busstop.png",
+    "print" : "${path}print.png",
+    "drugstore" : "${path}medical.png",
+    "others" : "${path}unknown.png",
+  };
+  static const Map<String, String> categoryToEng = {
+    "도서관" : "library",
+    "음식점" : "restaurant",
+    "자전거" : "bicycle",
+    "공원" : "park",
+    "명소" : "hotspot",
+    "카페" : "cafe",
+    "운동" : "sports",
+    "학교" : "school",
+    "주차장" : "parking",
+    "흡연장" : "smoking",
+    "쓰레기통" : "trashcan",
+    "편의점" : "convenience",
+    "정류장" : "bus",
+    "프린트" : "print",
+    "약국" : "drugstore",
+    "기타" : "others",
   };
 }

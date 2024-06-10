@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class LocationClicked{
   static clickLocation(double latitude, double longitude, String category) async {
     final response = await http.get(
-        Uri.parse("http://${ServerConf.url}/location/search/information?latitude=$latitude&longitude=$longitude&category=$category"),
+        Uri.parse("http://${ServerConf.url}/loc/location/search/information?latitude=$latitude&longitude=$longitude&category=$category"),
         headers: <String, String>{
           'Content-Type': 'application/json',
         }
