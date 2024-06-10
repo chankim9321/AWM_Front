@@ -8,7 +8,7 @@ class UserProfile{
   static getUserProfile() async {
     String? token = await SecureStorage().readSecureData("token");
     final response = await http.get(
-        Uri.parse("http://${ServerConf.url}/user/profile"),
+        Uri.parse("http://${ServerConf.url}/user-m/user/profile"),
         headers: <String, String>{
           'Content-Type' : 'application/json',
           'Authorization' : token!,

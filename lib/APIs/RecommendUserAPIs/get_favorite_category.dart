@@ -10,8 +10,9 @@ class GetFavoriteCategory{
   static getFavoriteCategory(List<String> recommendKeyword) async{
     String? token = await SecureStorage().readSecureData('token');
     String categorySerialized = recommendKeyword.join(",");
+    print(categorySerialized);
     final response = await http.post(
-      Uri.parse("http://${ServerConf.url}/user/edit/category-list"),
+      Uri.parse("http://${ServerConf.url}/user-m/user/edit/category-list"),
       headers: <String, String>{
         'Content-Type': 'application/json',
         'Authorization': token!
@@ -23,6 +24,7 @@ class GetFavoriteCategory{
     if(response.statusCode == 200){
       return true;
     }else{
+      print("[Category selection] Error Code: ${response.statusCode}");
       return false;
     }
   }

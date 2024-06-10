@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:mapdesign_flutter/APIs/LocationAPIs/location_clicked.dart';
 import 'package:mapdesign_flutter/APIs/LocationAPIs/location_detailed.dart';
@@ -10,9 +8,9 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:async';
-import 'package:animated_icon/animated_icon.dart';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
+import 'package:animated_icon/animated_icon.dart';
 
 class MarkerClicked extends StatefulWidget {
   const MarkerClicked({super.key, required this.latitude, required this.longitude, required this.category});
@@ -20,10 +18,10 @@ class MarkerClicked extends StatefulWidget {
   final double latitude;
   final String category;
   @override
-  _MarkerClickedState createState() => _MarkerClickedState();
+  MarkerClickedState createState() => MarkerClickedState();
 }
 
-class _MarkerClickedState extends State<MarkerClicked> {
+class MarkerClickedState extends State<MarkerClicked> {
   List<Uint8List> imagePaths = [];
   String title = '';
   String defaultImagePath = "asset/img/default_location.jpg";
@@ -40,46 +38,26 @@ class _MarkerClickedState extends State<MarkerClicked> {
 
   Future<void> _loadImages() async {
     var locationData = await LocationClicked.clickLocation(widget.latitude, widget.longitude, widget.category);
-    imagePaths = locationData['images'];
-    if (imagePaths.isEmpty) {
-      print("no imagess..");
-      var bytes = await rootBundle.load(defaultImagePath);
-      imagePaths.add(bytes.buffer.asUint8List());
-      setState(() {
-        title = locationData['title'];
-        image = MemoryImage(imagePaths[0]);
-      });
-    } else {
-      print("yes images");
-      setState(() {
-        title = locationData['title'];
-        image = MemoryImage(locationData['images'][0]);
-      });
-    }
-  }
-  Future<void> _loadImagesTest() async {
-    var locationData = await LocationClicked.clickLocation(widget.latitude, widget.longitude, widget.category);
-    if(locationData == null){
-      print("no imagess..");
-      var bytes = await rootBundle.load(defaultImagePath);
-      imagePaths.add(bytes.buffer.asUint8List());
-      setState(() {
-        title = "임시 테스트 장소";
-        // image = AssetImage(defaultImagePath);
-        image = MemoryImage(imagePaths[0]);
-      });
-    }else{
+    try {
       imagePaths = locationData['images'];
       print("yes images");
       setState(() {
         title = locationData['title'];
         image = MemoryImage(locationData['images'][0]);
-        // image = AssetImage(defaultImagePath);
+      });
+    } catch (e) {
+      print("no imagess..");
+      var bytes = await rootBundle.load(defaultImagePath);
+      imagePaths.add(bytes.buffer.asUint8List());
+      setState(() {
+        title = locationData['title'];
+        image = MemoryImage(imagePaths[0]);
       });
     }
   }
+
   Future<void> _init() async {
-    await _loadImagesTest();
+    await _loadImages();
   }
 
   @override
@@ -122,11 +100,15 @@ class _MarkerClickedState extends State<MarkerClicked> {
         itemBuilder: (context, index) {
           return Stack(
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: imagePaths.isNotEmpty ? MemoryImage(imagePaths[currentPage]) : image,
-                    fit: BoxFit.cover,
+              AnimatedSwitcher(
+                duration: Duration(seconds: 1),
+                child: Container(
+                  key: ValueKey<int>(currentPage),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: imagePaths.isNotEmpty ? MemoryImage(imagePaths[currentPage]) : image,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
@@ -243,9 +225,7 @@ class _MarkerClickedState extends State<MarkerClicked> {
                                 icon: AnimateIcon(
                                   color: Colors.lightBlueAccent,
                                   animateIcon: AnimateIcons.mapPointer,
-                                  onTap: () {
-
-                                  },
+                                  onTap: () {},
                                   iconType: IconType.continueAnimation,
                                 ),
                                 label: Text(
@@ -272,4 +252,3 @@ class _MarkerClickedState extends State<MarkerClicked> {
     );
   }
 }
-

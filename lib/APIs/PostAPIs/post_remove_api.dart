@@ -9,7 +9,7 @@ import 'package:mapdesign_flutter/user_info.dart';
 Future<bool> removePost(int postId, String token) async {
   const String url = ServerConf.url;
   final response = await http.get(
-    Uri.parse('http://$url/user/remove/$postId'),
+    Uri.parse('http://$url/comm/user/remove/$postId'),
     headers: <String, String>{
       'Content-Type': 'application/json',
       'Authorization' : token,

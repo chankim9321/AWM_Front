@@ -9,7 +9,7 @@ import 'dart:async';
 
 
 Future<PostDetail> fetchPostDetail(int postId) async {
-  final response = await http.get(Uri.parse('http://$baseUrl/board/findBoard/$postId'));
+  final response = await http.get(Uri.parse('http://$baseUrl/comm/board/findBoard/$postId'));
   if (response.statusCode == 200) {
     final Map<String, dynamic> data = json.decode(utf8.decode(response.bodyBytes));
     return PostDetail(

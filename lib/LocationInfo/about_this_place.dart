@@ -4,12 +4,12 @@ import 'package:http/http.dart' as http;
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
 import 'package:mapdesign_flutter/FlutterSecureStorage/secure_storage.dart';
 import 'package:mapdesign_flutter/components/customDialog.dart';
-
 import 'dart:math';
 
 class AboutThisPlace extends StatefulWidget {
   const AboutThisPlace({super.key, required this.locationId});
   final int locationId;
+
   @override
   _AboutThisPlaceState createState() => _AboutThisPlaceState();
 }
@@ -23,21 +23,21 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
   @override
   void initState() {
     super.initState();
-    // _fetchDataFromBackend();
-    _fetchDataFromBackendTest();
+    _fetchDataFromBackend();
     _setToken();
   }
-  void _setToken() async{
+
+  void _setToken() async {
     token = await SecureStorage().readSecureData('token');
   }
+
   Future<void> _fetchDataFromBackend() async {
     try {
-      print('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage');
       final response = await http.get(
-        Uri.parse('http://${ServerConf.url}/log/paging/${widget.locationId}?page=$currentPage'),
+        Uri.parse('http://${ServerConf.url}/comm/log/paging/${widget.locationId}?page=$currentPage'),
         headers: <String, String>{
           'Content-Type': 'application/json',
-        }
+        },
       );
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
@@ -51,14 +51,19 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
           final likeCount = log['likeCount'];
           final badCount = log['badCount'];
           setState(() {
-            contentList.add({'id': id, 'nickName': nickName, 'content': content, 'likeCount': likeCount, 'badCount': badCount});
+            contentList.add({
+              'id': id,
+              'nickName': nickName,
+              'content': content,
+              'likeCount': likeCount,
+              'badCount': badCount
+            });
           });
         }
-      } else if(response.statusCode == 204){
+      } else if (response.statusCode == 204) {
         isExist = false;
         print("컨텐츠 없음");
-      }
-      else {
+      } else {
         print('API 호출 실패: ${response.statusCode}');
       }
       currentPage++;
@@ -66,25 +71,11 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
       print('API 호출 에러: $error');
     }
   }
-  Future<void> _fetchDataFromBackendTest() async{
 
-    isExist = true;
-    final random = Random();
-    for (int i=0; i<10; i++) {
-      const id = "admin";
-      const nickName = "관리자";
-      const content = "Hello. This is test content!";
-      int likeCount = random.nextInt(10);
-      int badCount = random.nextInt(10);
-      setState(() {
-        contentList.add({'id': id, 'nickName': nickName, 'content': content, 'likeCount': likeCount, 'badCount': badCount});
-      });
-    }
-  }
   Future<void> _deletePost(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://${ServerConf.url}/user/logBoard/delete/$id'),
+        Uri.parse('http://${ServerConf.url}/comm/user/logBoard/delete/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': token!,
@@ -117,7 +108,7 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
   Future<void> _likePost(int id) async {
     try {
       final response = await http.post(
-        Uri.parse('http://${ServerConf.url}/user/logBoard/likeCount/$id'),
+        Uri.parse('http://${ServerConf.url}/comm/user/logBoard/likeCount/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': token!,
@@ -151,7 +142,7 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
   Future<void> _dislikePost(int id) async {
     try {
       final response = await http.post(
-        Uri.parse('http://${ServerConf.url}/user/logBoard/badCount/$id'),
+        Uri.parse('http://${ServerConf.url}/comm/user/logBoard/badCount/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': token!,
@@ -181,7 +172,6 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -195,53 +185,54 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
                 blurRadius: 10.0,
                 color: Colors.black.withOpacity(0.2),
                 offset: Offset(2.0, 2.0),
-                ),
-            ]
+              ),
+            ],
           ),
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              if(token!.isNotEmpty){
+              if (token!.isNotEmpty) {
                 _fetchDataFromBackend();
-              }else{
+              } else {
                 CustomDialog.showCustomDialog(context, "정보 업데이트", "로그인이 필요합니다.");
               }
             },
           ),
         ],
       ),
-      body: !isExist ? Center(child: Text("여러분이 알고있는 정보를 입력해주세요!"),)
-        : ListView.builder(itemCount: contentList.length, itemBuilder: (BuildContext context, int index) {
-           return Container(
-             height: 130,
-             margin: const EdgeInsets.only(bottom: 32, right: 10, left: 10),
-             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-             decoration: BoxDecoration(
-               gradient: LinearGradient(
-                 colors: contentList[index]['likeCount'] < contentList[index]['badCount'] ?
-                 [Colors.purpleAccent, Colors.redAccent] :
-                 [Colors.blueAccent, Colors.lightBlueAccent] ,
-                 begin: Alignment.centerLeft,
-                 end: Alignment.centerRight,
-               ),
-               boxShadow: [
-                 BoxShadow(
-                   color: contentList[index]['likeCount'] < contentList[index]['badCount'] ?
-                   Colors.redAccent.withOpacity(0.4) :
-                   Colors.blueAccent.withOpacity(0.4) ,
-                   blurRadius: 8,
-                   spreadRadius: 2,
-                   offset: Offset(4, 4),
-                 ),
-               ],
-               borderRadius: BorderRadius.all(Radius.circular(24)),
-             ),
-             child: Column(
+      body: !isExist
+          ? Center(child: Text("여러분이 알고있는 정보를 입력해주세요!"))
+          : ListView.builder(
+        itemCount: contentList.length,
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 32, right: 10, left: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: contentList[index]['likeCount'] < contentList[index]['badCount']
+                    ? [Colors.purpleAccent, Colors.redAccent]
+                    : [Colors.blueAccent, Colors.lightBlueAccent],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: contentList[index]['likeCount'] < contentList[index]['badCount']
+                      ? Colors.redAccent.withOpacity(0.4)
+                      : Colors.blueAccent.withOpacity(0.4),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                  offset: Offset(4, 4),
+                ),
+              ],
+              borderRadius: BorderRadius.all(Radius.circular(24)),
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Padding(
                   padding: const EdgeInsets.only(left: 10.0),
                   child: Row(
@@ -272,7 +263,10 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
                               }
                             },
                           ),
-                          Text('${contentList[index]['likeCount']}'),
+                          Text(
+                            '${contentList[index]['likeCount']}',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           IconButton(
                             icon: Icon(Icons.thumb_down, color: Colors.white),
                             onPressed: () {
@@ -283,7 +277,10 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
                               }
                             },
                           ),
-                          Text('${contentList[index]['badCount']}'),
+                          Text(
+                            '${contentList[index]['badCount']}',
+                            style: TextStyle(color: Colors.white),
+                          ),
                           IconButton(
                             icon: Icon(Icons.delete, color: Colors.white),
                             onPressed: () {
@@ -302,12 +299,16 @@ class _AboutThisPlaceState extends State<AboutThisPlace> {
                 Container(
                   child: Text(
                     contentList[index]['content'],
-                    style: TextStyle(color: Colors.white, fontFamily: 'avenir', fontSize: 17),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'PretendardLight',
+                      fontSize: 17,
+                    ),
                   ),
                 ),
               ],
             ),
-           );
+          );
         },
       ),
     );

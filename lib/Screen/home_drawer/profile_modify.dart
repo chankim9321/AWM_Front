@@ -266,7 +266,7 @@ class _ProfileModifyPageState extends State<ProfileModifyPage> {
   }
 
   Future<bool> updateProfile(String nickname, Uint8List? imageData) async {
-    var uri = Uri.parse('http://${ServerConf.url}/user/edit/profile'); // 서버 API 주소
+    var uri = Uri.parse('http://${ServerConf.url}/user-m/user/edit/profile'); // 서버 API 주소
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Authorization": token!,

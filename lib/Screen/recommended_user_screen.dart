@@ -12,27 +12,42 @@ class RecommendUserScreen extends StatefulWidget {
 }
 
 class _RecommendUserScreenState extends State<RecommendUserScreen> {
-  late List<dynamic> userData;
+  List<dynamic> userData = [];
   bool isLoading = true;
-  Future<void> _initData() async{
-    userData = await GetSameCategoryUser.getSameCategoryUser();
+
+  Future<void> _initData() async {
+    final data = await GetSameCategoryUser.getSameCategoryUser();
     setState(() {
       isLoading = false;
+      if (data != null) {
+        userData = data;
+      } else {
+        userData = [];
+      }
     });
   }
+
   @override
   void initState() {
     super.initState();
     _initData();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('추천된 유저'),
+        title: Text('추천된 유저', style: TextStyle(fontSize: 20, fontFamily: 'PretendardLight')),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
+          : userData.isEmpty
+          ? Center(
+        child: Text(
+          '추천된 유저가 존재하지 않습니다',
+          style: TextStyle(fontSize: 16, fontFamily: 'PretendardLight'),
+        ),
+      )
           : ListView.builder(
         itemCount: userData.length,
         itemBuilder: (context, index) {
@@ -42,7 +57,10 @@ class _RecommendUserScreenState extends State<RecommendUserScreen> {
             leading: CircleAvatar(
               backgroundImage: MemoryImage(imageBytes),
             ),
-            title: Text(user['nickName']),
+            title: Text(
+              user['nickName'],
+              style: TextStyle(fontFamily: 'PretendardLight'),
+            ),
           );
         },
       ),

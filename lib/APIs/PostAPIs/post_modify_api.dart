@@ -8,7 +8,7 @@ import 'package:mapdesign_flutter/user_info.dart';
 
 Future<bool> modifyPost(String title, String content, String imagePath, String authToken, int postId) async {
 
-  final Uri endpoint = Uri.parse('http://${ServerConf.url}/user/update/$postId'); // 글 수정 api 주소 수정
+  final Uri endpoint = Uri.parse('http://${ServerConf.url}/comm/user/update/$postId'); // 글 수정 api 주소 수정
 
   // Read JSON file containing title and content
   final Map<String, dynamic> postData = {

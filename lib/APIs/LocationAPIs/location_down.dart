@@ -9,7 +9,7 @@ class LocationDown{
   static disapproveLocation(int locationId) async {
     String? token = await SecureStorage().readSecureData("token");
     var response = http.post(
-        Uri.parse("http://${ServerConf.url}/user/location/delete"),
+        Uri.parse("http://${ServerConf.url}/loc/user/location/delete"),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Authorization': token!

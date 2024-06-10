@@ -1,16 +1,14 @@
-import 'dart:ffi';
-
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:mapdesign_flutter/community/post_create_screen.dart';
 import 'package:mapdesign_flutter/community/search_screen.dart';
 import 'package:mapdesign_flutter/community/socket_chat.dart';
 import 'package:mapdesign_flutter/user_info.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'dart:typed_data';
 import 'package:mapdesign_flutter/app_colors.dart';
 import 'package:mapdesign_flutter/community/post_detailed_screen.dart';
 import 'package:mapdesign_flutter/APIs/backend_server.dart';
@@ -49,25 +47,29 @@ class _BlogListScreenState extends State<BlogListScreen> {
   int currentPage = 0;
   bool isLoading = false;
   List<Post> dataList = [];
+  late RefreshController _refreshController;  // late 키워드를 사용하여 나중에 초기화할 수 있도록 설정합니다.
+  final ScrollController _scrollController = ScrollController();
 
-  Future<void> _initData() async{
+  Future<void> _initData() async {
     await fetchData();
   }
+
   @override
   void initState() {
     super.initState();
-    _initData();
     _refreshController = RefreshController(initialRefresh: false);
+    _initData();
     _scrollController.addListener(_scrollListener);
   }
-  // 위로 스크롤 했을 때, 최신글이 불러오게끔 설정
+
   void _refresh() async {
     try {
-      List<Post> newPost = await getPostList(widget.locationId, currentPage);
-      print('currentPage');
-      print(currentPage);
+      List<Post> newPost = await getPostList(widget.locationId, 0);
       if (newPost.isNotEmpty) {
-        // dataList.insertAll(0, newPost);
+        setState(() {
+          dataList = newPost;
+          currentPage = 1;
+        });
         _streamController.add(dataList);
       }
     } catch (e) {
@@ -75,15 +77,15 @@ class _BlogListScreenState extends State<BlogListScreen> {
     }
     _refreshController.refreshCompleted();
   }
-  // 아래로 스크롤 했을 때, 과거글이 불러오게끔 설정
+
   void _loading() async {
     try {
-      currentPage++;
       List<Post> newPost = await getPostList(widget.locationId, currentPage);
-      print('currentPage');
-      print(currentPage);
       if (newPost.isNotEmpty) {
-        dataList.insertAll(dataList.length, newPost);
+        setState(() {
+          dataList.addAll(newPost);
+          currentPage++;
+        });
         _streamController.add(dataList);
       }
     } catch (e) {
@@ -91,13 +93,17 @@ class _BlogListScreenState extends State<BlogListScreen> {
     }
     _refreshController.loadComplete();
   }
+
   Future<void> fetchData() async {
     try {
       if (!isLoading) {
         isLoading = true;
         List<Post> newTodos = await getPostList(widget.locationId, currentPage);
         if (newTodos.isNotEmpty) {
-          dataList.addAll(newTodos);
+          setState(() {
+            dataList.addAll(newTodos);
+            currentPage++;
+          });
           _streamController.add(dataList);
         }
       }
@@ -109,18 +115,13 @@ class _BlogListScreenState extends State<BlogListScreen> {
   }
 
   Future<List<Post>> getPostList(int locationId, int page) async {
-    String original = 'http://$baseUrl';
-    String sub = "/board/paging/$locationId?page=$page";
-    String url = original + sub;
+    String url = 'http://$baseUrl/comm/board/paging/$locationId?page=$page';
     http.Client client = http.Client();
-    print(url);
     List<Post> list = [];
     try {
-      print(url);
       final response = await client.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final postList = json.decode(utf8.decode(response.bodyBytes))["content"];
-        print(postList.length);
         postList.forEach((todo) {
           try {
             list.add(Post.fromJson(todo));
@@ -150,7 +151,13 @@ class _BlogListScreenState extends State<BlogListScreen> {
     int likes = snapshot.data[index].likeCount;
     int comment = snapshot.data[index].commentCount;
     return Card(
+      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       child: InkWell(
+        borderRadius: BorderRadius.circular(15),
         onTap: () {
           Navigator.push(
             context,
@@ -164,7 +171,7 @@ class _BlogListScreenState extends State<BlogListScreen> {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(20.0),
+              borderRadius: BorderRadius.circular(15.0),
               child: image != null
                   ? Image.memory(
                 image,
@@ -176,8 +183,8 @@ class _BlogListScreenState extends State<BlogListScreen> {
                 imageFilePath,
                 width: 100,
                 height: 100,
-                fit: BoxFit.cover, // Adjust the fit based on your requirement
-              )
+                fit: BoxFit.cover,
+              ),
             ),
             Expanded(
               child: Padding(
@@ -185,32 +192,28 @@ class _BlogListScreenState extends State<BlogListScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            content,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                    Text(
+                      title,
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      content,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: TextStyle(color: Colors.grey[600]),
                     ),
                     SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Icon(Icons.favorite_outline),
+                        Icon(Icons.favorite_outline, color: Colors.red),
                         SizedBox(width: 4),
                         Text('$likes'),
                         SizedBox(width: 10),
-                        Icon(Icons.chat_bubble_outline),
+                        Icon(Icons.chat_bubble_outline, color: Colors.blue),
                         SizedBox(width: 4),
                         Text('$comment'),
                       ],
@@ -226,16 +229,6 @@ class _BlogListScreenState extends State<BlogListScreen> {
     );
   }
 
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    _streamController.close();
-    super.dispose();
-  }
-
   void _scrollListener() {
     if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
@@ -243,105 +236,123 @@ class _BlogListScreenState extends State<BlogListScreen> {
       fetchData();
     }
   }
-  RefreshController _refreshController = RefreshController(initialRefresh: false);
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    _streamController.close();
+    _refreshController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('자유게시판',
-            style: TextStyle(
-              color: AppColors.instance.white,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          '자유게시판',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue, Colors.purple],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-          backgroundColor: AppColors.instance.skyBlue,
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.refresh,
-                color: AppColors.instance.white,
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.refresh, color: Colors.white),
+            onPressed: () {
+              setState(() {
+                currentPage = 0;
+                dataList = [];
+                fetchData();
+              });
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: <Widget>[
+          Flexible(
+            child: SmartRefresher(
+              enablePullUp: true,
+              enablePullDown: true,
+              controller: _refreshController,
+              onRefresh: _refresh,
+              onLoading: _loading,
+              child: StreamBuilder(
+                stream: _streamController.stream,
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  if (!snapshot.hasData || snapshot.data.isEmpty) {
+                    return Center(child: Text('게시글이 없습니다.'));
+                  }
+                  return ListView.builder(
+                    controller: _scrollController,
+                    itemCount: dataList.length,
+                    itemBuilder: (context, index) {
+                      return _buildListTile(snapshot, index);
+                    },
+                  );
+                },
               ),
-              onPressed: () {
-                setState(() {
-                  currentPage = 0;
-                  dataList = [];
-                  fetchData();
-                });
-              },
             ),
-          ],
-        ),
-        body: Column(
-          children: <Widget>[
-            Flexible(
-              child: SmartRefresher(
-                enablePullUp: true,
-                enablePullDown: true,
-                controller: _refreshController,
-                onRefresh: _refresh, // 위로 스크롤
-                onLoading: _loading, // 아래로 스크롤
-                child: StreamBuilder(
-                  stream: _streamController.stream,
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    return ListView.builder(
-                      controller: _scrollController,
-                      itemCount: dataList.length,
-                      itemBuilder: (context, index) {
-                        return _buildListTile(snapshot, index);
-                      },
-                    );
-                  },
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: '홈',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle),
+            label: '글쓰기',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: '검색',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: '채팅',
+          ),
+        ],
+        onTap: (int index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PostCreationScreen(locationId: widget.locationId),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchScreen(locationId: widget.locationId),
+              ),
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  locationId: widget.locationId,
+                  nickName: UserInfo.userNickname,
                 ),
               ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: '홈',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle),
-              label: '글쓰기',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              label: '검색',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat),
-              label: '채팅',
-            ),
-          ],
-          onTap: (int index) {
-            if (index == 1) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PostCreationScreen(locationId: widget.locationId),
-                ),
-              );
-            }
-            else if (index == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SearchScreen(locationId: widget.locationId),
-                ),
-              );
-            }
-            else if (index == 3) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatScreen(locationId: widget.locationId, nickName: UserInfo.userNickname,),
-                ),
-              );
-            }
-          },
-        ),
+            );
+          }
+        },
       ),
     );
   }

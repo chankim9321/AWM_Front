@@ -1,73 +1,102 @@
 import 'dart:convert';
 import 'dart:ui';
-
 import 'package:geolocator/geolocator.dart';
+import 'package:mapdesign_flutter/APIs/backend_server.dart';
+import 'package:mapdesign_flutter/LocationInfo/about_this_place.dart';
 import 'redis_connector.dart';
 import 'device_id_creator.dart';
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'web_socket.dart';
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/material.dart';
 
 
 class NotificationService {
+  final GlobalKey<NavigatorState> _navigatorKey;
   final _redisClient = RedisClient();
   final _deviceInfo = DeviceIDCreator();
   late WebSocketService _webSocketService;
-  final _backend_socket_server = "test";
-  NotificationService() {
+  final _backend_socket_server = "ws://${ServerConf.url}/alarm/ws";
+  String previousLatitude = "";
+  String previousLongitude = "";
+
+  String? previous_key;
+  static int _instanceCount = 0;
+
+  NotificationService(this._navigatorKey) {
+    _instanceCount++;
+    print("NotificationService instance created: $_instanceCount");
     _init();
   }
+
   // 현재 위치를 가져오는 함수
   void _init() {
-    String _deviceId = _deviceInfo.getDeviceId();
+    print("_init called");
+    String? _deviceId = _deviceInfo.getDeviceId();
     _webSocketService = WebSocketService(_backend_socket_server);
+    _webSocketService.connect();
     // 클라이언트가 연결되면 자신의 ID를 서버에 전송
-    _webSocketService.sendMessage(jsonEncode({'type': 'register', 'deviceId': _deviceId}));
-
+    print("[Socket]: $_deviceId 전송");
+    _webSocketService.sendMessage(
+        jsonEncode({'type': 'register', 'deviceId': _deviceId}));
     _webSocketService.messages.listen((message) {
       final decodedMessage = jsonDecode(message);
-      String title = decodedMessage["title"];
-
-      String location_id = decodedMessage["location_id"];
+      // final decodedMessage = message;
+      String notificationMsg = decodedMessage["message"];
+      String locationId = decodedMessage["location_id"];
+      String selectedDevice = decodedMessage["selected_device"];
+      print("[Notification] Message Received from Socket Server!");
       // 여기에 로컬 알림을 띄우는 코드를 추가하세요.
-
+      // Notification(locationId, notificationMsg, int.parse(locationId));
+      if(_deviceId == selectedDevice){
+        Notification(locationId, notificationMsg, int.parse(locationId));
+      }
     });
+
     Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
-          distanceFilter: 10,  // 위치가 10m 이상 변경되었을 때만 업데이트
+          accuracy: LocationAccuracy.best,
+          distanceFilter: 5, // 위치가 5m 이상 변경되었을 때만 업데이트
         )
     ).listen((Position position) {
-      _updateLocation(position);
+      String presentLatitude = position.latitude.toStringAsFixed(4);
+      String presentLongitude = position.longitude.toStringAsFixed(4);
+      if(previousLatitude == "" && previousLongitude == ""){
+        previousLatitude = presentLatitude;
+        previousLongitude = presentLongitude;
+        _updateLocation(position, _deviceId);
+      }else{
+        if(previousLatitude != presentLatitude && previousLongitude != previousLongitude){
+          _updateLocation(position, _deviceId);
+        }
+      }
     });
   }
 
-  void _updateLocation(Position position) {
+  void _updateLocation(Position position, String deviceId) {
     // Redis에 위치 업데이트 로직 구현
-    print("New location: ${position.latitude}, ${position.longitude}");
-    _redisClient.saveUserLocation(position.latitude.toString(), position.longitude.toString());
+    _redisClient.saveUserLocation(
+        position.latitude.toDouble(), position.longitude.toDouble(), deviceId);
   }
+
   // 웹 소켓 연결 해제
   void dispose() {
-    _webSocketService.close();
+    _webSocketService.disconnect();
   }
-  Future ClockTimeNotification(String notiTitle, String notiDesc) async {
-    final result;//권한 확인을 위한 변수
+
+  Future Notification(String notiTitle, String notiDesc, int locationId) async {
+    final result; //권한 확인을 위한 변수
     //----------------------------------------------------------------------------------
     //local notification 플러그인 객체 생성
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
     //플랫폼 확인해서 OS 종류에 따라 권한 확인
     //안드로이드 일때
-    if(Platform.isAndroid){
-      result=true;
+    if (Platform.isAndroid) {
+      result = true;
     }
     //IOS 일때
-    else{
+    else {
       result = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin>()
@@ -87,41 +116,32 @@ class NotificationService {
     ); // Notification Icon 배경색
 
     //IOS Notification 옵션
-    var ios = IOSNotificationDetails();
+    var ios = IOSNotificationDetails(presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+        badgeNumber: 1
+    );
     //Notificaiton 옵션 값 등록
     var detail = NotificationDetails(android: android, iOS: ios);
+
+
+    var initializationSettingsAndroid = AndroidInitializationSettings(
+        '@mipmap/ic_launcher');
+    var initializationSettingsIOS = IOSInitializationSettings(onDidReceiveLocalNotification: (id, title, body, payload) async {});
+    var initializationSettings = InitializationSettings(android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
     //----------------------------------------------------------------------------------
     //권한이 있으면 실행.
-    if (result==true) {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-          ?.deleteNotificationChannelGroup('id');
-
-      await flutterLocalNotificationsPlugin.zonedSchedule(
-        0, // 스케줄 ID(고유)
-        notiTitle, //알람 제목
-        notiDesc, //알람 내용
-        _setNotiTime(), //알람 시간
-        detail,
-        androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
-        //이 옵션은 중요함(옵션 값에따라 시간만 맞춰서 작동할지, 월,일,시간 모두 맞춰서 작동할지 옵션 설정
-        //아래와 같이 time으로 설정되어있으면, setNotTime에서 날짜를 아무리 지정해줘도 시간만 동일하면 알림이 발생
-        matchDateTimeComponents: DateTimeComponents.time,//또는dayOfMonthAndTime
-      );
+    if (result == true) {
+      print("권한 확인, Notification 실행");
+      await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+      flutterLocalNotificationsPlugin.initialize(initializationSettings,
+          onSelectNotification: (String? payload) async {
+            if (payload != null) {
+              _navigatorKey.currentState!.push(MaterialPageRoute(builder: (context) => AboutThisPlace(locationId: int.parse(payload),)));
+            }
+          });
+      await flutterLocalNotificationsPlugin.show(
+          0, "정보 업데이트 발생!", notiDesc, detail, payload: locationId.toString());
     }
   }
-  //알람 시간 세팅
-  tz.TZDateTime _setNotiTime() {
-    tz.initializeTimeZones();//TimeZone Database 초기화
-    tz.setLocalLocation(tz.getLocation('Asia/Seoul'));//TimeZone 설정(외국은 다르게!)
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, 13, 06, 30);//알람 시간
-    //var test = tz.TZDateTime.now(tz.local).add(const Duration (seconds: 5));
-    print('-----------알람 시간 체크----${scheduledDate.toString()}');
-    return scheduledDate;
-  }
-
 }
